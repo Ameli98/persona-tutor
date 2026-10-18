@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>persona-tutor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1 id="apptitle">persona-tutor</h1>
+  <span id="level" class="pill"></span>
+  <span id="status" class="pill muted" data-i18n="connecting">Connecting…</span>
+</header>
+
+<main>
+  <section class="topic">
+    <span class="label" data-i18n="now">Now</span>
+    <span id="topic">—</span>
+    <span id="topic-native" class="muted"></span>
+    <span id="progress" class="muted"></span>
+    <span id="timer" class="muted timer"></span>
+    <span id="cost" class="muted small" data-i18n-title="cost_title"></span>
+  </section>
+
+  <section class="card tutor">
+    <div class="avatar" id="avatar">?</div>
+    <div class="lines">
+      <p id="line" class="tl" data-i18n="intro_line">Press “Start warm-up” to begin.</p>
+      <p id="reading" class="reading"></p>
+      <p id="translation" class="translation hidden"></p>
+      <div id="note" class="note hidden"></div>
+      <div class="row">
+        <button id="replay" disabled data-i18n="replay">▶ Replay</button>
+        <button id="show-tr" disabled data-i18n="show_translation">Show translation</button>
+        <span id="ttsinfo" class="muted small"></span>
+      </div>
+      <div id="hintbox" class="hintbox hidden"></div>
+    </div>
+  </section>
+
+  <section class="controls">
+    <button id="start" class="primary" data-i18n="start_warmup">Start warm-up</button>
+    <select id="scenario" class="hidden"></select>
+    <button id="convo" class="primary hidden" data-i18n="start_convo">Start conversation</button>
+    <button id="rec" class="rec" disabled data-i18n="rec">Hold to talk (or hold Space)</button>
+    <button id="hint" disabled data-i18n="hint">Hint</button>
+    <button id="retry" class="hidden" disabled data-i18n="retry">Try again</button>
+    <button id="next" class="hidden" disabled data-i18n="next">Next →</button>
+    <button id="end" class="hidden" disabled data-i18n="end">End</button>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="my_transcript">My transcript</h2>
+    <p id="mine" class="tl muted">—</p>
+    <p id="minereading" class="reading"></p>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="feedback">Feedback</h2>
+    <div id="feedback" class="muted" data-i18n="feedback_idle"></div>
+  </section>
+
+  <section id="reviewbox" class="card hidden">
+    <h2 data-i18n="review">Review</h2>
+    <div id="review" class="muted" data-i18n="preparing"></div>
+  </section>
+
+  <details id="logbox" class="card">
+    <summary data-i18n="session_log">This session's transcript</summary>
+    <ol id="log" class="log"></ol>
+  </details>
+
+  <details id="histbox" class="card" open>
+    <summary data-i18n="history">Past sessions (review videos)</summary>
+    <ol id="history" class="log history"></ol>
+  </details>
+
+  <details class="card">
+    <summary data-i18n="tts_test">TTS test</summary>
+    <div class="row">
+      <select id="t-emo">
+        <option>neutral</option><option>happy</option><option>shy</option>
+        <option>sad</option><option>surprised</option><option>angry</option>
+      </select>
+      <button id="t-say" data-i18n="synthesize">Synthesize</button>
+    </div>
+    <textarea id="t-text" rows="3"></textarea>
+    <pre id="t-log" class="small"></pre>
+  </details>
+</main>
+
+<div id="pop" class="pop hidden" role="dialog"></div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

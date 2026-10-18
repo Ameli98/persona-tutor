@@ -1,0 +1,11 @@
+id: work_or_study
+title: Explain your work or studies
+titles: {ja: 仕事・研究の説明, zh-TW: 說明自己的工作或研究}
+setting: The tutor knows nothing about the learner's field but is curious, and asks them to explain what they do in a way a layperson understands.
+goal: Explain specialised content in plain spoken language; rephrase, give examples, use analogies.
+angles:
+  - what the work is about in one sentence, and what problem it solves
+  - why they chose it, how it started
+  - where they are stuck right now and what they have tried
+  - how it is useful to ordinary people
+  - the people they work with, the atmosphere

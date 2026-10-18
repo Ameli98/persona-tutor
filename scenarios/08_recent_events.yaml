@@ -1,0 +1,10 @@
+id: recent_events
+title: Look back on the past week or two
+titles: {ja: 最近の出来事, zh-TW: 回顧最近發生的事}
+setting: The tutor asks what happened in the last week or two (progress at work or school, daily life, good or bad moments) and asks them to tell it in order.
+goal: Narrate past events in order with time expressions and connectives, and describe feelings.
+angles:
+  - the main thing that happened
+  - what happened first, then, in the end
+  - how they felt about it
+  - plans for next week

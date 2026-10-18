@@ -1,0 +1,10 @@
+id: disagree
+title: Disagree politely
+titles: {ja: 反対意見を伝える, zh-TW: 表達不同意見}
+setting: The tutor deliberately makes a slightly one-sided claim (e.g. "remote work is inefficient", "AI can do all the research") and asks the learner to push back gently but clearly.
+goal: Acknowledge first, then disagree; soften the tone; give reasons and alternatives.
+angles:
+  - what is reasonable about the claim and what is not
+  - evidence or personal experience against it
+  - a compromise
+  - responding when the tutor pushes back again

@@ -1,0 +1,11 @@
+id: interview
+title: Interview practice
+titles: {ja: 面接練習, zh-TW: 面試式問答}
+setting: The tutor plays an interviewer at a company or lab (still in character) and asks about self-introduction, experience, motivation, strengths and weaknesses.
+goal: Answer formal questions in a structured way (conclusion first, then reasons and an example) with appropriate politeness.
+angles:
+  - self-introduction
+  - a project they are proud of and their role in it
+  - why this company or lab
+  - a failure and what they learned
+  - questions for the interviewer

@@ -1,0 +1,10 @@
+id: explain_concept
+title: Explain a concept from your field
+titles: {ja: 専門用語を説明する, zh-TW: 解釋專業概念}
+setting: The tutor hears a technical term from the learner's field and asks what it means; the tutor then restates it in their own (slightly wrong) words.
+goal: Define a term simply, give an everyday analogy, correct a misunderstanding politely.
+angles:
+  - a one-sentence definition
+  - an everyday analogy
+  - what goes wrong without it
+  - where the tutor's restatement is off

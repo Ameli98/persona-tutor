@@ -1,0 +1,83 @@
+# persona-tutor settings. Copy to config.yaml (git-ignored) and edit.
+# Relative paths are relative to this folder.
+
+language:
+  target: ja            # the language you practise (module in tutor/lang/; GPT-SoVITS speaks zh/en/ja/ko/yue)
+  native: en            # your language: translations, explanations and feedback reasons (en, zh-TW, ...)
+  level: "intermediate: can follow conversations but is slow to speak"   # free text, goes into the prompts
+
+ui_language: en         # web page language: en | zh-TW
+
+learner:
+  # Who you are, in a sentence or two. The tutor uses it to pick topics and follow-up questions.
+  profile: "Someone who wants to get comfortable speaking in everyday conversations."
+  name: You             # shown in the review video for your lines
+
+persona: personas/example.yaml     # the tutor's character (name, personality, way of speaking)
+scenarios: scenarios               # folder of conversation topics (*.yaml)
+data_dir: data                     # practice records, review videos, your voices (git-ignored)
+
+server:
+  host: 127.0.0.1       # local only
+  port: 8765
+
+paths:
+  gsv_root: ../GPT-SoVITS          # your GPT-SoVITS checkout (https://github.com/RVC-Boss/GPT-SoVITS)
+
+voices:
+  # Trained with the voice steps in README.md (python -m voice.ingest ... voice.screen). Globs are allowed; the newest match wins.
+  tutor:
+    sovits: data/voices/tutor/sovits.pth
+    gpt: data/voices/tutor/gpt.ckpt
+    refs_list: data/voices/tutor/refs/refs.list
+  # Optional second voice that re-speaks your lines in review videos. Train one named `review` and it is used
+  # automatically (data/voices/review/); otherwise the tutor's voice does it. Set paths here only to use another folder.
+  # review:
+  #   sovits: data/voices/review/sovits.pth
+  #   gpt: data/voices/review/gpt.ckpt
+  #   refs_list: data/voices/review/refs/refs.list
+
+tts:
+  version: v2Pro
+  verify: true              # transcribe each synthesized sentence and re-synthesize if it was misread
+  max_attempts: 3
+  max_cer: 0.05             # max reading error rate (0.05 ≈ 1 wrong mora in 20)
+
+review_video:
+  # Drop images into these folders; nothing to configure. Empty folders are fine.
+  background: data/backgrounds    # default.png for every topic, or <scenario_id>.png per topic (png/jpg/webp); none = gradient
+  backgrounds: {}                 # or name files explicitly: {scenario_id: image file}
+  characters:                     # <emotion>.png: neutral, happy, angry, sad, shy, surprised (missing → neutral.png)
+    tutor: data/characters/tutor
+    learner: data/characters/learner
+  font_dir: null            # folder with NotoSansCJK / SourceHanSans OTFs; null = find with fc-match
+  shadow: false             # also render a shadowing version (pause after each of your lines)
+
+llm:
+  # provider: anthropic (key in ~/.config/persona-tutor/api_key, read by run.sh) or ollama
+  reply:                    # the tutor's lines: character, follow-up questions
+    provider: anthropic
+    model: claude-opus-5-5
+    effort: low
+  feedback:                 # corrections, word explanations, rephrasing: fast and precise
+    provider: anthropic
+    model: claude-sonnet-5-5
+    effort: low
+  review:                   # after-session review (corrected / model versions, key expressions)
+    provider: anthropic
+    model: claude-sonnet-5-5
+    effort: low
+  # local model example: reply: {provider: ollama, model: "gemma4:e4b"}
+
+session:
+  minutes: 12               # the tutor wraps up after this
+  max_cost_usd: 1.0         # ...or once a session has cost this much
+  max_history_turns: 40     # only the last N turns are sent to the LLM, so each turn's cost has a ceiling
+
+stt:
+  model: large-v3-turbo
+  compute_type: float16
+
+warmup:
+  count: 3                  # shadowing sentences before the conversation (tutor/lang/<target>_warmup.yaml)
+  emotion: neutral

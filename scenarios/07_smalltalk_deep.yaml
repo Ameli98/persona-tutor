@@ -1,0 +1,10 @@
+id: smalltalk_deep
+title: Small talk that goes deeper
+titles: {ja: 雑談を深める, zh-TW: 日常閒聊深入版}
+setting: Starts from light everyday topics (food, weekends, hobbies, weather, seasonal events), but the tutor keeps asking follow-up questions to go deeper.
+goal: "Keep a casual conversation going: give details, feelings and episodes instead of one-word answers, and ask questions back."
+angles:
+  - a recent meal or place they went
+  - how they spend weekends
+  - a hobby and how they got into it
+  - seasonal events back home

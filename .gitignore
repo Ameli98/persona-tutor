@@ -1,0 +1,31 @@
+# Your own settings (paths to your models, persona choice). Start from config.example.yaml.
+config.yaml
+
+# Everything personal or derived from voice recordings stays out of git:
+# training audio, trained weights, reference clips, practice recordings and review videos.
+data/
+*.pth
+*.ckpt
+*.wav
+*.ogg
+*.mp3
+*.mp4
+*.flac
+
+# Runtime scratch
+.conda-env
+install.log
+runtime/
+tutor/video/cache/
+__pycache__/
+*.pyc
+.venv/
+.env
+.pytest_cache/
+.wgetrc-install
+
+# Editors / OS / local agent settings
+.vscode/
+.idea/
+.DS_Store
+.claude/settings.local.json

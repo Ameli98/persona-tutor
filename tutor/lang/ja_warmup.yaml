@@ -1,0 +1,32 @@
+# Warm-up shadowing sentences for Japanese, with translations per native language.
+# Add a key for your language (e.g. ko:) — sentences without one are shown untranslated.
+- text: 最近ちょっと忙しくて、なかなか自分の時間が取れないんです。
+  en: I've been a bit busy lately and can hardly find time for myself.
+  zh-TW: 最近有點忙，一直抽不出自己的時間。
+- text: 駅までの道を教えていただけますか？
+  en: Could you tell me the way to the station?
+  zh-TW: 可以告訴我怎麼去車站嗎？
+- text: せっかくの週末なので、少し遠くまで出かけてみようと思います。
+  en: Since it's the weekend, I think I'll go somewhere a little farther away.
+  zh-TW: 難得的週末，想試著出遠門一點。
+- text: その件については、もう少し検討してからお返事させてください。
+  en: Please let me think it over a little more before I get back to you on that.
+  zh-TW: 那件事請讓我再考慮一下再回覆您。
+- text: 思っていたより時間がかかってしまって、申し訳ありません。
+  en: I'm sorry it took longer than I expected.
+  zh-TW: 比預想的花了更多時間，真的很抱歉。
+- text: 言われてみれば、確かにそういう考え方もありますね。
+  en: Now that you mention it, that's certainly one way to look at it.
+  zh-TW: 被你這麼一說，確實也有那樣的想法呢。
+- text: 実験の結果が予想と違ったので、原因を調べているところです。
+  en: The experiment didn't turn out as expected, so I'm looking into why.
+  zh-TW: 實驗結果和預期不同，正在調查原因。
+- text: もしよろしければ、今度一緒に食事でもいかがですか？
+  en: If you'd like, how about having a meal together sometime?
+  zh-TW: 方便的話，下次要不要一起吃個飯？
+- text: 話が長くなってしまいましたが、要するにそういうことです。
+  en: That got long, but in short, that's the point.
+  zh-TW: 說得有點長了，總之就是這麼回事。
+- text: 正直に言うと、まだ自信を持って説明できるほどではありません。
+  en: To be honest, I'm not yet confident enough to explain it well.
+  zh-TW: 老實說，還沒到能有自信地說明的程度。

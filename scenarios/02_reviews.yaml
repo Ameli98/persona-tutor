@@ -1,0 +1,11 @@
+id: reviews
+title: Share your thoughts on something you watched or read
+titles: {ja: 作品・ニュースの感想, zh-TW: 時事或作品心得}
+setting: The tutor wants to hear the learner's opinion of a recent piece of news, anime, game, book or film.
+goal: Summarise briefly, then give opinions with reasons and concrete scenes or details.
+angles:
+  - a short summary without spoilers
+  - the most memorable part and why
+  - what they did not like
+  - who they would recommend it to
+  - comparison with something similar

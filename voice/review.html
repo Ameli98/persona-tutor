@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference clips</title>
+<style>
+:root { --bg:#f6f4f1; --card:#fff; --text:#24211f; --muted:#8a837c; --line:#e4dfd8; --accent:#b4475c; --accent-soft:#f6e3e7;
+  --ok:#2f7d4f; --ok-soft:#e3f1e8; --bad:#c0392b; --bad-soft:#fbe6e3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#1c1a19; --card:#262322; --text:#ece7e2; --muted:#9b948d; --line:#3a3532; --accent:#e07a8f; --accent-soft:#3a2a2e;
+  --ok:#6cc28f; --ok-soft:#203528; --bad:#f08070; --bad-soft:#3e2522; } }
+:root[data-theme="dark"] { --bg:#1c1a19; --card:#262322; --text:#ece7e2; --muted:#9b948d; --line:#3a3532; --accent:#e07a8f;
+  --accent-soft:#3a2a2e; --ok:#6cc28f; --ok-soft:#203528; --bad:#f08070; --bad-soft:#3e2522; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, "Noto Sans JP", "Noto Sans TC", sans-serif; }
+main { max-width: 920px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 20px; margin: 4px 0 2px; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+.tips { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 14px; }
+.tips ul { margin: 4px 0; padding-left: 20px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.tab { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 5px 12px; cursor: pointer; font: inherit; }
+.tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tab .n { opacity: .8; font-size: 12px; margin-left: 4px; }
+.row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 10px; margin: 6px 0; }
+.row.keep { border-color: var(--ok); background: var(--ok-soft); } .row.reject { opacity: .55; background: var(--bad-soft); }
+.row .text { flex: 1; min-width: 0; } .row .meta { font-size: 12px; color: var(--muted); }
+.badge.warn { background: var(--bad-soft); color: var(--bad); }
+.badge { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 6px; background: var(--accent-soft); margin-left: 6px; }
+button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 8px; padding: 4px 10px; }
+button.play { width: 38px; height: 38px; border-radius: 50%; padding: 0; font-size: 15px; flex: none; }
+button.k.on { background: var(--ok); color: #fff; border-color: var(--ok); }
+button.r.on { background: var(--bad); color: #fff; border-color: var(--bad); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; padding: 8px 16px; }
+select { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 8px; padding: 3px 4px; }
+#nextstep { margin: 0 0 16px; } #nextstep code { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.bar { position: sticky; bottom: 0; background: var(--bg); padding: 10px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+details summary { cursor: pointer; margin: 14px 0 6px; color: var(--muted); }
+input[type=search] { font: inherit; width: 100%; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); margin: 4px 0; }
+@media (max-width: 600px) { .row { flex-wrap: wrap; } .row .text { flex-basis: calc(100% - 50px); } }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <div class="muted small" id="subtitle"></div>
+  <div class="tips" id="tips"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="status" class="small muted"></div>
+  <div id="list"></div>
+  <details id="morebox"><summary id="moresum"></summary>
+    <input type="search" id="filter">
+    <div id="more"></div>
+  </details>
+  <div class="bar"><button class="primary" id="apply"></button><span id="applied" class="small muted"></span></div>
+  <div id="nextstep" class="small"></div>
+</main>
+<script>
+const T = {
+  en: { title: "Reference clips — {name}", subtitle: "These clips set the tone of everything this voice says. Aim for {n} kept per emotion (at least 2–3).",
+    tips: "<b>Keep</b> a clip when:<ul><li>the emotion is clear from this line alone, without the story around it</li><li>the audio is clean and close: no breathiness, whisper, echo or effect, not muffled (through a door), no background noise</li><li>it is one complete sentence, not cut off or interrupted</li></ul>Click ▶ to listen (or press Space for the first undecided clip).",
+    kept: "{k} kept · {r} rejected · {u} undecided", keep: "Keep", reject: "Reject", move: "Move to…", standalone: "clear without context",
+    auto: "auto-labelled", screen_bad: "⚠ the trained voice misread test sentences with this clip", more: "More clips labelled “{emo}” ({n})", filter: "Filter by text…", apply: "Write references",
+    applied: "Written: {counts}. The tutor uses them after a restart.",
+    next: "Next: press Ctrl+C in the terminal, then run", none: "No candidates. Look under “more clips”, or move clips here from another emotion.",
+    neutral: "neutral", happy: "happy", angry: "angry", sad: "sad", shy: "shy", surprised: "surprised" },
+  "zh-TW": { title: "參考音 — {name}", subtitle: "參考音決定這個聲音說話的語氣。每種情緒建議保留 {n} 個（至少 2–3 個）。",
+    tips: "<b>保留</b>的條件：<ul><li>不靠前後劇情，光聽這一句就聽得出情緒</li><li>聲音乾淨、近距離：沒有氣音、悄悄話、回音或特效，不悶（像隔著門），沒有背景雜音</li><li>是一句完整的話，沒有被切掉或打斷</li></ul>按 ▶ 試聽（或按空白鍵播放第一個還沒決定的）。",
+    kept: "保留 {k} · 淘汰 {r} · 未決定 {u}", keep: "保留", reject: "淘汰", move: "移到…", standalone: "不靠劇情也聽得出",
+    auto: "自動標記", screen_bad: "⚠ 訓練後用這段合成測試句時唸錯了", more: "其他標成「{emo}」的片段（{n}）", filter: "用文字篩選…", apply: "寫入參考音",
+    applied: "已寫入：{counts}。家教重新啟動後會使用。",
+    next: "下一步：在終端機按 Ctrl+C 結束，然後執行", none: "沒有候選。可以看下方的其他片段，或從別的情緒移過來。",
+    neutral: "平靜", happy: "開心", angry: "生氣", sad: "難過", shy: "害羞", surprised: "驚訝" },
+};
+let L = T.en, S = null, tab = "neutral", audio = null;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const t = (k, v = {}) => (L[k] ?? T.en[k] ?? k).replace(/\{(\w+)\}/g, (m, x) => v[x] ?? m);
+const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
+function play(id, btn) {
+  if (audio) { audio.pause(); document.querySelectorAll(".play").forEach((b) => (b.textContent = "▶")); }
+  if (audio && audio.dataset.id === id) { audio = null; return; }
+  audio = new Audio(`/clip/${encodeURIComponent(id)}.wav`); audio.dataset.id = id;
+  btn.textContent = "■"; audio.onended = () => { btn.textContent = "▶"; audio = null; }; audio.play();
+}
+
+function rowHtml(c) {
+  const opts = S.emotions.map((e) => `<option value="${e}" ${e === c.emotion ? "selected" : ""}>${esc(t(e))}</option>`).join("");
+  return `<div class="row ${c.status}" data-id="${esc(c.id)}">
+    <button class="play" title="▶">▶</button>
+    <div class="text">${esc(c.text)}<div class="meta">${c.dur}s · ${esc(c.source)}${c.standalone ? `<span class="badge">${esc(t("standalone"))}</span>` : ""}${c.auto ? `<span class="badge">${esc(t("auto"))}</span>` : ""}${c.screen_bad ? `<span class="badge warn">${esc(t("screen_bad"))}</span>` : ""}</div></div>
+    <button class="k ${c.status === "keep" ? "on" : ""}">${esc(t("keep"))}</button>
+    <button class="r ${c.status === "reject" ? "on" : ""}">${esc(t("reject"))}</button>
+    <select title="${esc(t("move"))}">${opts}</select></div>`;
+}
+
+function render() {
+  const all = S.clips;
+  $("tabs").innerHTML = S.emotions.map((e) => {
+    const k = all[e].candidates.filter((c) => c.status === "keep").length;
+    return `<button class="tab ${e === tab ? "on" : ""}" data-e="${e}">${esc(t(e))}<span class="n">${k}/${S.target}</span></button>`;
+  }).join("");
+  const cur = all[tab];
+  const k = cur.candidates.filter((c) => c.status === "keep").length, r = cur.candidates.filter((c) => c.status === "reject").length;
+  $("status").textContent = t("kept", { k, r, u: cur.candidates.length - k - r });
+  $("list").innerHTML = cur.candidates.length ? cur.candidates.map(rowHtml).join("") : `<p class="muted">${esc(t("none"))}</p>`;
+  $("moresum").textContent = t("more", { emo: t(tab), n: cur.more.length });
+  const f = $("filter").value.trim();
+  $("more").innerHTML = cur.more.filter((c) => !f || c.text.includes(f)).slice(0, 200).map(rowHtml).join("");
+}
+
+async function load() { S = await (await fetch("/api/state")).json(); render(); }
+
+async function decide(id, status, emotion) {
+  await post("/api/decide", { id, status, emotion });
+  await load();
+}
+
+document.addEventListener("click", (e) => {
+  const tb = e.target.closest(".tab"); if (tb) { tab = tb.dataset.e; render(); return; }
+  const row = e.target.closest(".row"); if (!row) return;
+  const id = row.dataset.id, c = [...S.clips[tab].candidates, ...S.clips[tab].more].find((x) => x.id === id);
+  if (e.target.closest(".play")) play(id, e.target.closest(".play"));
+  else if (e.target.closest(".k")) decide(id, c.status === "keep" ? "" : "keep");
+  else if (e.target.closest(".r")) decide(id, c.status === "reject" ? "" : "reject");
+});
+document.addEventListener("change", (e) => {
+  const row = e.target.closest(".row"); if (!row || e.target.tagName !== "SELECT") return;
+  const c = [...S.clips[tab].candidates, ...S.clips[tab].more].find((x) => x.id === row.dataset.id);
+  decide(row.dataset.id, c.status, e.target.value);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.code !== "Space" || ["INPUT", "SELECT", "BUTTON"].includes(document.activeElement.tagName)) return;
+  e.preventDefault();
+  const first = [...document.querySelectorAll("#list .row")].find((r) => !r.classList.contains("keep") && !r.classList.contains("reject"));
+  if (first) play(first.dataset.id, first.querySelector(".play"));
+});
+$("filter").addEventListener("input", render);
+$("apply").onclick = async () => {
+  const r = await (await post("/api/apply", {})).json();
+  $("applied").textContent = t("applied", { counts: S.emotions.map((e) => `${t(e)} ${r.counts[e]}`).join(", ") });
+  $("nextstep").innerHTML = `${esc(t("next"))} <code>${esc(r.next.split("   ")[0])}</code>`;
+};
+
+fetch("/api/state").then((r) => r.json()).then((st) => {
+  S = st;
+  L = T[new URLSearchParams(location.search).get("lang") || st.ui_language] || T.en;
+  document.documentElement.lang = T[st.ui_language] ? st.ui_language : "en";
+  document.title = t("title", { name: st.name });
+  $("title").textContent = t("title", { name: st.name });
+  $("subtitle").textContent = t("subtitle", { n: st.target });
+  $("tips").innerHTML = L.tips;
+  $("filter").placeholder = t("filter");
+  $("apply").textContent = t("apply");
+  render();
+});
+</script>
+</body>
+</html>
