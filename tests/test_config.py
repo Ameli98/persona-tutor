@@ -71,3 +71,27 @@ def test_panel_avoids_characters():
         x0, x1 = panel_span(spans)
         assert x1 - x0 >= 480 and 0 <= x0 and x1 <= W
         assert all(x1 <= l or x0 >= r for l, r in spans)
+
+
+def test_memory_save_caps_and_brief(tmp_path):
+    from tutor.backend import memory
+    assert memory.brief(memory.load(tmp_path)) == ""          # nothing yet → nothing in the prompt
+    saved = memory.save(tmp_path, {"level": " ok ", "errors": [f"e{i}" for i in range(30)] + ["", "  "],
+                                   "about": ["likes RPGs"], "junk": ["x"]})
+    assert saved["level"] == "ok" and len(saved["errors"]) == memory.FIELDS["errors"][0] and "junk" not in saved
+    mem = memory.load(tmp_path)
+    assert "likes RPGs" in memory.brief(mem) and mem["updated"]
+
+
+def test_prompts_include_memory_and_lesson():
+    from tutor.backend import prompts, settings
+    from tutor.backend.review import review_system
+    s = settings.load("config.example.yaml")
+    sc = next(iter(s.scenarios.values()))
+    lesson = {"phrases": [{"text": "ちょっと…", "translation": "", "note": ""}],
+              "grammar": {"point": "〜たいんですが", "explanation": "", "examples": []}, "dialogue": [], "culture": ""}
+    text = prompts.reply_system(s, sc, {"level": "", "errors": [], "mastered": [], "topics": [],
+                                        "about": ["planning a trip to Kanazawa"]}, lesson)
+    assert "Kanazawa" in text and "ちょっと…" in text and "〜たいんですが" in text
+    assert "remember" not in prompts.reply_system(s, sc)       # no memory, no lesson → no extra sections
+    assert "ちょっと…" in review_system(s, lesson) and "empty array" in review_system(s)

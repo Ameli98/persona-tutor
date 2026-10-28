@@ -1,9 +1,11 @@
-"""After a session: corrected + upgraded versions of every user line, and 3–5 key expressions."""
+"""After a session: corrected + upgraded versions of every user line, 3–5 key expressions, and which of the
+lesson's phrases the learner used."""
 import json
 import re
 import time
 from pathlib import Path
 
+from . import lesson as lesson_mod
 from .settings import Settings
 
 REVIEW_SCHEMA = {
@@ -39,14 +41,34 @@ REVIEW_SCHEMA = {
                 "additionalProperties": False,
             },
         },
+        "lesson_use": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "item": {"type": "string"},
+                    "used": {"type": "boolean"},
+                    "correct": {"type": "boolean"},
+                    "note": {"type": "string"},
+                },
+                "required": ["item", "used", "correct", "note"],
+                "additionalProperties": False,
+            },
+        },
     },
-    "required": ["turns", "expressions"],
+    "required": ["turns", "expressions", "lesson_use"],
     "additionalProperties": False,
 }
 
 
-def review_system(s: Settings) -> str:
+def review_system(s: Settings, lesson: dict | None = None) -> str:
     t, n = s.target, s.native
+    items = lesson_mod.items(lesson) if lesson else []
+    lesson_rule = ("lesson_use: before this conversation the learner studied these, one entry each, in this order:\n" +
+                   "\n".join(f"  - {x}" for x in items) +
+                   f"\n  used = they said it (or a natural form of it) on their own; correct = used it correctly; note = one short"
+                   f" line in {n} (how they used it, or a moment where it would have fit). Unused items: correct=false.\n"
+                   ) if items else "lesson_use: an empty array (there was no lesson).\n"
     return f"""You are a {t} speaking coach doing an after-practice review with the learner (native language {n}; {t} level: {s.level}).
 Below is the transcript of their conversation with their tutor, {s.persona['name']}. Each learner line is numbered [U<n>].
 The learner's lines come from speech recognition (ASR): usually no punctuation, occasionally misrecognised words. Do not comment on punctuation or sentence breaks, and do not count likely recognition errors (homophones, wrong characters) as the learner's mistakes. Add natural punctuation to the corrected and model versions.
@@ -64,14 +86,14 @@ For every learner line produce:
 
 expressions: pick 3–5 expressions most worth remembering from the whole conversation. Prefer places where the learner actually said something wrong or unnatural that they will need again
 (said = what they said, better = the natural version, reason = one sentence in {n}); if there are fewer than 3 real problems, add useful phrases from the model answers (said = their simpler original wording).
-corrected_reason, upgrade_note, translation and reason are always written in {n} ({t} words may be quoted inside the explanation).
+{lesson_rule}corrected_reason, upgrade_note, translation, reason and note are always written in {n} ({t} words may be quoted inside the explanation).
 Output JSON only."""
 
 
 def _explanations_in_native(s: Settings, out: dict) -> bool:
     """False if the explanation fields drifted into the target language (it happens)."""
     texts = [t["corrected_reason"] for t in out["turns"]] + [t["upgrade_note"] for t in out["turns"]] + \
-            [e["reason"] for e in out["expressions"]]
+            [e["reason"] for e in out["expressions"]] + [u["note"] for u in out.get("lesson_use", [])]
     return all(s.lang.script_ratio(x) < 0.3 for x in texts if x)  # per field: one drifted note is enough
 
 
@@ -99,7 +121,7 @@ def build_review(llm, s: Settings, session_dir: Path) -> tuple[dict, float]:
     text, user_idx = transcript_for_review(session, s.persona["name"])
     if not user_idx:
         raise ValueError("no user turns to review")
-    system = review_system(s)
+    system = review_system(s, session.get("lesson"))
     out, cost = llm.json_with_cost(system, [{"role": "user", "content": text}], REVIEW_SCHEMA, 16000)
     if not _explanations_in_native(s, out):
         retry = text + f"\n\n(The explanation fields must be written in {s.native}.)"
@@ -117,7 +139,8 @@ def build_review(llm, s: Settings, session_dir: Path) -> tuple[dict, float]:
             session["turns"][ti]["review"] = {k: r[k] for k in
                                               ("corrected", "corrected_reason", "upgraded", "upgrade_note", "translation", "emotion")}
     review = {"created": time.strftime("%Y-%m-%d %H:%M:%S"), "cost_usd": round(cost, 4),
-              "expressions": out["expressions"], "session": session}
+              "expressions": out["expressions"], "lesson_use": out["lesson_use"] if session.get("lesson") else [],
+              "session": session}
     (session_dir / "review.json").write_text(json.dumps(review, ensure_ascii=False, indent=1), encoding="utf-8")
     return review, cost
 

@@ -70,7 +70,7 @@ llm:
   # local model example: reply: {provider: ollama, model: "gemma4:e4b"}
 
 session:
-  minutes: 12               # the tutor wraps up after this
+  minutes: 5                # the tutor wraps up after this (short: it practises the lesson before it)
   max_cost_usd: 1.0         # ...or once a session has cost this much
   max_history_turns: 40     # only the last N turns are sent to the LLM, so each turn's cost has a ceiling
 

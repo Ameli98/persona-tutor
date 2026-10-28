@@ -25,6 +25,8 @@ class Session:
     max_turns: int = 40      # history window: older turns are dropped, so per-turn cost has a ceiling
     max_cost: float = 1.0    # $ per session; at this point the tutor wraps up
     cost: float = 0.0        # $ spent in this session (API-reported usage)
+    memory: dict | None = None   # learner.json at the start (what the tutor remembers)
+    lesson: dict | None = None   # the lesson studied right before, if any
 
     @property
     def elapsed_min(self) -> float:
@@ -43,7 +45,7 @@ class Session:
             # turn until she closes: a one-time note was sometimes ignored and the session ran on
             msgs[-1] = {"role": "user", "content": msgs[-1]["content"] + "\n\n" + prompts.WRAP_UP}
             self.wrap_up_sent = True
-        system = prompts.reply_system(self.settings, self.scenario)
+        system = prompts.reply_system(self.settings, self.scenario, self.memory, self.lesson)
         if on_text:
             out = llm.stream_json(system, msgs, prompts.REPLY_SCHEMA, on_text)
         else:

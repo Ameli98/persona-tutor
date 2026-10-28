@@ -1,7 +1,8 @@
 // persona-tutor — front end
 //  warm-up: recap last session's key expressions, then listen → shadow → compare
-//  conversation: the tutor leads a scenario; each turn = transcript + reply + feedback
-//  after the session: review + review videos; past sessions
+//  lesson: phrases, a grammar point, a model dialogue for the topic (optional; shadow the phrases)
+//  conversation: the tutor leads a scenario (practising the lesson); each turn = transcript + reply + feedback
+//  after the session: review + review videos; past sessions; the learner's memory (editable)
 // UI text comes from i18n.js (t()).
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -10,7 +11,8 @@ const S = {
   mode: "idle",                 // idle | warmup | convo | ended
   warmup: [], i: 0,             // recap items (kind "recap") then warm-up sentences (kind "shadow")
   recall: false,                // recap item: still trying to recall (answer hidden)
-  session: null, started: 0, minutes: 12, timer: null,
+  session: null, started: 0, minutes: 5, timer: null,
+  lesson: null,                 // {id, scenario, lesson} from /api/lesson, practised by the next conversation
   hints: [], hintLevel: 0, line: "",
   audioQueue: [], playing: null, lastAudio: [],
   recorder: null, chunks: [], busy: false,
@@ -190,7 +192,122 @@ async function startWarmup() {
   const items = recap ? recap.items.map((x, index) => ({ ...x, kind: "recap", index, dir: recap.dir, date: recap.date, scenario: recap.scenario })) : [];
   S.warmup = [...items, ...shadow.map((x) => ({ ...x, kind: "shadow" }))];
   S.i = 0;
-  show("start", false); show("scenario", false); show("convo", false);
+  show("start", false); show("scenario", false); show("lesson", false); show("convo", false);
+  show("retry"); show("next"); show("end", false); show("hint", false);
+  showSentence();
+}
+
+// ---------- views (left menu) ----------
+function showView(name) {
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== "view-" + name));
+  document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  if (name === "lessons") loadLessons().catch(() => {});
+  if (name === "history") loadHistory().catch(() => {});
+  if (name === "memory") loadMemory().catch(() => {});
+}
+
+// ---------- lesson ----------
+async function startLesson() {
+  enable(["lesson", "convo", "start"], false);
+  setStatus("lesson_preparing");
+  showView("lesson");
+  $("lessonbody").innerHTML = `<p class="muted">${esc(t("lesson_preparing"))}</p>`;
+  try {
+    const res = await fetch("/api/lesson", postJSON({ scenario: $("scenario").value || null }));
+    if (!res.ok) throw new Error(tMsg((await res.json().catch(() => ({}))).detail || res.statusText));
+    S.lesson = await res.json();
+    $("topic").textContent = S.lesson.scenario.title;
+    $("topic-native").textContent = uiTitle(S.lesson.scenario) !== S.lesson.scenario.title ? uiTitle(S.lesson.scenario) : "";
+    label("cost", "cost", { cost: S.lesson.cost.toFixed(3) });
+    renderLesson($("lessonbody"), S.lesson.lesson, S.lesson.scenario, true);
+    renderKeyPoints(S.lesson.lesson);
+    show("scenario", false); show("lesson", false); show("start", false);
+    label("convo", "start_convo_lesson");
+  } catch (e) { $("lessonbody").innerHTML = `<p class="muted">${esc(t("lesson_failed", { msg: e.message }))}</p>`; }
+  enable(["lesson", "convo", "start"]);
+  setStatus("ready", true);
+}
+
+// one line of target-language text with a play button (texts[i] is what the button says)
+function sayable(texts, x, cls = "") {
+  texts.push(x.text);
+  return `<div class="ls-line ${cls}"><button class="play" data-i="${texts.length - 1}" title="${esc(t("replay"))}">▶</button>` +
+    `<div><div class="ls-t">${esc(x.text)}</div><div class="reading">${esc(x.reading || "")}</div>` +
+    `<div class="rv-note">${esc(x.translation || "")}${x.note ? " — " + esc(x.note) : ""}</div></div></div>`;
+}
+
+// key points first (what to use in the conversation), then the dialogue, the grammar explanation and the note
+function renderLesson(box, l, scenario, current) {
+  const texts = [];
+  const who = (d) => (d.speaker === "tutor" ? S.cfg.tutor_name : S.cfg.learner_name);
+  const sub = uiTitle(scenario) !== scenario.title ? ` <span class="muted">(${esc(uiTitle(scenario))})</span>` : "";
+  const phrases = l.phrases.map((p) => sayable(texts, p)).join("");
+  const examples = l.grammar.examples.map((e) => sayable(texts, e)).join("");
+  const first = texts.length;
+  const dialogue = l.dialogue.map((d) => `<div class="ls-who">${esc(who(d))}</div>` + sayable(texts, d, d.speaker)).join("");
+  box.innerHTML =
+    `<h2 class="ls-title">${esc(scenario.title)}${sub}</h2>` +
+    `<section class="card keypoints"><div class="kp-head">${esc(t("key_points"))}</div>` +
+    `<div class="rv-sec">${esc(t("lesson_phrases"))}</div>${phrases}` +
+    `<div class="rv-sec">${esc(t("lesson_grammar"))}</div><div class="kp-grammar">${esc(l.grammar.point)}</div>` +
+    `<div class="ls-expl">${esc(l.grammar.explanation)}</div>${examples}</section>` +
+    (current ? `<div class="row"><button class="ls-shadow">${esc(t("lesson_shadow"))}</button>` +
+      `<button class="ls-convo primary">${esc(t("start_convo_lesson"))}</button></div>` : "") +
+    `<section class="card"><h2>${esc(t("lesson_dialogue"))} <button class="playall small">${esc(t("play_dialogue"))}</button></h2>${dialogue}</section>` +
+    (l.culture ? `<section class="card"><h2>${esc(t("lesson_culture"))}</h2><div class="ls-expl">${esc(l.culture)}</div></section>` : "");
+  box.querySelectorAll(".play").forEach((b) => (b.onclick = () => synthAndPlay(texts[b.dataset.i], "neutral")));
+  box.querySelector(".playall").onclick = () => playAll(texts.slice(first));
+  if (current) {
+    box.querySelector(".ls-shadow").onclick = () => shadowLesson(l);
+    box.querySelector(".ls-convo").onclick = () => { showView("practice"); startConvo(); };
+  }
+}
+
+// the practice view keeps the key points in sight during the conversation
+function renderKeyPoints(l) {
+  $("kp-body").innerHTML = l.phrases.map((p) => `<span class="kp-chip" title="${esc(p.translation)}">${esc(p.text)}</span>`).join("") +
+    `<div class="kp-grammar">${esc(t("lesson_grammar"))}: ${esc(l.grammar.point)}</div>` +
+    `<div class="ls-expl">${esc(l.grammar.explanation)}</div>`;
+  show("keypoints");
+}
+
+// past lessons: read again (and listen)
+async function loadLessons() {
+  const list = await (await fetch("/api/lessons")).json();
+  $("lessons").innerHTML = list.length ? "" : `<li class="muted">${esc(t("no_lessons"))}</li>`;
+  for (const x of list) {
+    const li = document.createElement("li");
+    const sub = uiTitle(x.scenario) !== x.scenario.title ? ` <span class="muted">(${esc(uiTitle(x.scenario))})</span>` : "";
+    li.innerHTML = `<a href="#" class="ls-link"><b>${esc(x.date.slice(0, 16))}</b> ${esc(x.scenario.title)}</a>${sub}`;
+    li.querySelector("a").onclick = (e) => {
+      e.preventDefault();
+      renderLesson($("pastlesson"), x.lesson, x.scenario, false);
+      $("pastlesson").scrollIntoView({ behavior: "smooth" });
+    };
+    $("lessons").appendChild(li);
+  }
+}
+
+// the dialogue line by line, in order (each line's audio queued as soon as it is ready)
+async function playAll(texts) {
+  S.lastAudio = []; stopAudio();
+  for (const text of texts) {
+    try {
+      await stream("/api/say", postJSON({ text, emotion: "neutral" }), (ev) => {
+        if (ev.type === "segment") { S.lastAudio.push(ev.audio); enqueue(ev.audio); }
+      });
+    } catch (e) { $("ttsinfo").textContent = t("error", { msg: e.message }); return; }
+  }
+}
+
+// shadow the lesson's phrases with the warm-up flow (listen → say → compare)
+async function shadowLesson(l) {
+  if (!(await ensureMic())) return;
+  showView("practice");
+  S.mode = "warmup";
+  S.warmup = l.phrases.map((p) => ({ ...p, kind: "shadow", emotion: "neutral" }));
+  S.i = 0;
+  show("start", false); show("scenario", false); show("lesson", false); show("convo", false);
   show("retry"); show("next"); show("end", false); show("hint", false);
   showSentence();
 }
@@ -262,7 +379,8 @@ function nextWarmup() {
   renderLine({ text: t("warmup_done_line") });
   show("retry", false); show("next", false);
   enable(["rec"], false);
-  show("scenario"); show("convo");
+  if (S.lesson) { label("topic", "topic_lesson"); show("convo"); label("convo", "start_convo_lesson"); return; }
+  show("scenario"); show("lesson"); show("convo");
   label("start", "warmup_again"); show("start");
 }
 
@@ -350,12 +468,13 @@ async function startConvo() {
   S.started = Date.now();
   clearInterval(S.timer); S.timer = setInterval(tick, 1000); tick();
   $("log").innerHTML = ""; $("logbox").open = false;
-  show("start", false); show("scenario", false); show("convo", false);
+  show("start", false); show("scenario", false); show("lesson", false); show("convo", false);
   show("retry", false); show("next", false); show("hint"); show("end");
   $("progress").textContent = "";
   clearMine();
   label("feedback", "convo_intro"); $("feedback").classList.add("muted");
-  await runReply("/api/session/start", postJSON({ scenario: $("scenario").value || null }));
+  if (!S.lesson) show("keypoints", false);
+  await runReply("/api/session/start", postJSON({ scenario: $("scenario").value || null, lesson: S.lesson?.id || null }));
 }
 
 async function convoTurn(blob, name) {
@@ -381,7 +500,8 @@ function endConvoUI() {
   show("end", false); show("hint", false);
   $("logbox").open = true;
   label("start", "warmup_again"); show("start");
-  show("scenario"); show("convo"); label("convo", "convo_again");
+  show("scenario"); show("lesson"); show("convo"); label("convo", "convo_again");
+  S.lesson = null;
   loadReview();
 }
 
@@ -400,7 +520,13 @@ async function loadReview() {
       <div class="rv-row"><span class="k">${esc(t("corrected"))}</span>${x.corrected_reason ? `<b>${esc(x.corrected)}</b><div class="rv-note">${esc(x.corrected_reason)}</div>` : `<span class="fb-ok">${esc(t("fine_as_is"))}</span>`}</div>
       <div class="rv-row"><span class="k">${esc(t("model"))}</span><span class="rv-up">${esc(x.upgraded)}</span><div class="rv-note">${esc(x.translation)}</div><div class="rv-note">💡 ${esc(x.upgrade_note)}</div></div>
     </div>`).join("");
-    $("review").innerHTML = `<div class="rv-sec">${esc(t("review_key"))}</div>${exp}<div class="rv-sec">${esc(t("review_lines"))}</div><div class="rv-note">${esc(t("explain_modes"))}</div>${turns}` +
+    const mark = (u) => (u.used ? (u.correct ? "used_ok" : "used_wrong") : "not_used");
+    const lessonUse = r.lesson_use?.length
+      ? `<div class="rv-sec">${esc(t("review_lesson"))}</div>` + r.lesson_use.map((u) =>
+        `<div class="rv-row"><span class="lu ${mark(u)}">${esc(t(mark(u)))}</span> ${esc(u.item)}${u.note ? `<div class="rv-note">${esc(u.note)}</div>` : ""}</div>`).join("")
+      : "";
+    if (r.memory_updated) loadMemory();
+    $("review").innerHTML = `${lessonUse}<div class="rv-sec">${esc(t("review_key"))}</div>${exp}<div class="rv-sec">${esc(t("review_lines"))}</div><div class="rv-note">${esc(t("explain_modes"))}</div>${turns}` +
       `<div class="rv-sec">${esc(t("review_video"))}</div><div id="rv-video"></div>` +
       `<div class="rv-note">${esc(t("saved_to", { dir: r.dir }))}</div>`;
     $("review").classList.remove("muted");
@@ -465,6 +591,32 @@ async function loadHistory() {
   }
 }
 
+// ---------- memory: what the tutor remembers (data/learner.json), editable ----------
+const MEM_FIELDS = ["level", "errors", "mastered", "topics", "about"];
+
+async function loadMemory() {
+  const m = await (await fetch("/api/memory")).json();
+  $("memory").innerHTML = MEM_FIELDS.map((k) => {
+    const v = k === "level" ? m.level : (m[k] || []).join("\n");
+    const hint = k === "level" ? "" : ` <span class="muted small">(${esc(t("mem_one_per_line"))})</span>`;
+    return `<label class="mem"><span class="k">${esc(t("mem_" + k))}</span>${hint}<textarea data-k="${k}" rows="${k === "level" ? 2 : 4}">${esc(v)}</textarea></label>`;
+  }).join("");
+  $("mem-status").textContent = m.updated ? t("mem_when", { when: m.updated.slice(0, 16) }) : t("mem_empty");
+}
+
+async function saveMemory() {
+  const body = {};
+  $("memory").querySelectorAll("textarea").forEach((el) => {
+    body[el.dataset.k] = el.dataset.k === "level" ? el.value : el.value.split("\n");
+  });
+  try {
+    const res = await fetch("/api/memory", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(res.statusText);
+    await loadMemory();
+    $("mem-status").textContent = t("mem_saved");
+  } catch (e) { $("mem-status").textContent = t("error", { msg: e.message }); }
+}
+
 // ---------- hints: 1st = keywords, 2nd = model answer (with audio) ----------
 async function hint() {
   if (!S.hints.length) return;
@@ -510,10 +662,13 @@ $("retry").onclick = () => {
 $("replay").onclick = replay;
 $("show-tr").onclick = toggleTranslation;
 $("convo").onclick = startConvo;
+$("lesson").onclick = startLesson;
+$("mem-save").onclick = saveMemory;
 $("hint").onclick = hint;
 $("end").onclick = endConvo;
 $("t-say").onclick = ttsTest;
-$("histbox").addEventListener("toggle", () => { if ($("histbox").open) loadHistory(); });
+document.querySelectorAll("#nav button").forEach((b) => (b.onclick = () => showView(b.dataset.view)));
+$("kp-open").onclick = () => showView("lesson");
 const rec = $("rec");
 rec.addEventListener("pointerdown", (e) => { e.preventDefault(); startRec(); });
 rec.addEventListener("pointerup", stopRec);
@@ -546,8 +701,9 @@ fetch("/api/config").then((r) => r.json()).then((c) => {
   fetch("/api/scenarios").then((r) => r.json()).then((list) => {
     $("scenario").innerHTML = `<option value="">${esc(t("topic_random"))}</option>` +
       list.map((s) => `<option value="${esc(s.id)}">${esc(s.title)}${uiTitle(s) !== s.title ? ` (${esc(uiTitle(s))})` : ""}</option>`).join("");
-    show("scenario"); show("convo");
+    show("scenario"); show("lesson"); show("convo");
   });
   fetch("/api/warmup").then((r) => r.json()).then((w) => { if (w[0]) $("t-text").value = w[0].text; }).catch(() => {});
   loadHistory().catch(() => {});
+  loadMemory().catch(() => {});
 }).catch(() => setStatus("offline"));

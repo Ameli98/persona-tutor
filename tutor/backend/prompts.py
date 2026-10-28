@@ -3,6 +3,8 @@
 Everything learner- or language-specific comes from Settings (config.yaml, the persona file and the
 target-language module), so the same prompts work for any persona / target / native language.
 """
+from . import lesson as lesson_mod
+from . import memory
 from .settings import Settings
 
 EMOTIONS = ["neutral", "happy", "angry", "sad", "shy", "surprised"]
@@ -64,14 +66,38 @@ def learner_brief(s: Settings) -> str:
     return f"The learner's native language is {s.native}; their {s.target} level: {s.level}. {s.learner}".strip()
 
 
-def reply_system(s: Settings, scenario: dict) -> str:
+def memory_section(mem: dict | None) -> str:
+    remembered = memory.brief(mem or {})
+    if not remembered:
+        return ""
+    return f"""
+What you remember about the learner from earlier sessions (keep it in mind; never recite it):
+{remembered}
+Use it like a friend who remembers: pitch your language at their level; when it fits, ask questions that give them
+a chance to use what they get wrong (never point the mistake out); bring up things they told you before when
+relevant (ask how a plan went, follow up on news); don't repeat a topic angle they have already covered.
+"""
+
+
+def lesson_section(lesson: dict | None) -> str:
+    if not lesson:
+        return ""
+    return f"""
+Just before this conversation the learner studied a short lesson for today's topic:
+{lesson_mod.brief(lesson)}
+This practice is short and is for using that lesson: ask questions that call for these phrases and the grammar
+point, one or two at a time, so the learner gets to say most of them. Stay on today's topic.
+"""
+
+
+def reply_system(s: Settings, scenario: dict, mem: dict | None = None, lesson: dict | None = None) -> str:
     angles = "\n".join(f"  - {a}" for a in scenario.get("angles", []))
     t, n = s.target, s.native
     return f"""You are playing this character:
 {persona_brief(s)}
 
 You are the learner's {t} speaking tutor. {learner_brief(s)}
-
+{memory_section(mem)}{lesson_section(lesson)}
 Today's topic: {scenario['title']}
 Setting: {scenario['setting']}
 Practice goal: {scenario['goal']}

@@ -1,10 +1,12 @@
 """persona-tutor backend (FastAPI, local only).
 
 - Warm-up: shadowing (record → STT → reading comparison), streaming TTS.
+- Lesson: a short lesson for the topic (phrases, a grammar point, a model dialogue) pitched by the learner's memory.
 - Conversation: the persona leads a scenario (reply LLM, streamed sentence by sentence into TTS) while a
   second LLM call gives feedback on each answer; hints, word explanations, questions in either language.
-- After a session: review (corrected / model versions, key expressions), review videos, and a recap of
-  the key expressions at the start of the next session.
+- After a session: review (corrected / model versions, key expressions, lesson phrases used), the learner's
+  memory updated (data/learner.json, editable on the page), review videos, and a recap of the key expressions
+  at the start of the next session.
 
 Messages meant for the learner are sent as keys ({"type": "progress", "key": ..., "args": ...}) and
 translated by the web page, so the backend has no UI language.
@@ -26,7 +28,8 @@ from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 from ..video.review_video import MODES, load_review, render_videos, voice_user_lines
-from . import prompts
+from . import lesson as lesson_mod
+from . import memory, prompts
 from . import settings as settings_mod
 from .llm import FieldWatcher, LLMError, make_llm
 from .progress import SessionRecord
@@ -46,7 +49,7 @@ UPLOADS = RUNTIME / "uploads"
 DATA = S.data
 SESSIONS = DATA / "sessions"
 
-state: dict = {"sessions": {}, "records": {}, "explain_cache": {}}
+state: dict = {"sessions": {}, "records": {}, "lessons": {}, "explain_cache": {}}
 # one GPU, two models: never run STT and TTS at the same time
 gpu_lock = asyncio.Lock()
 
@@ -316,17 +319,53 @@ def scenarios():
 
 class StartRequest(BaseModel):
     scenario: str | None = None
+    lesson: str | None = None   # id from /api/lesson: practise that lesson (its topic wins over scenario)
+
+
+def with_readings(lesson: dict) -> dict:
+    """Pronunciation lines for the page (the stored lesson stays as the LLM wrote it)."""
+    add = lambda x: {**x, "reading": L.reading_display(x["text"])}
+    g = lesson["grammar"]
+    return {**lesson, "phrases": [add(p) for p in lesson["phrases"]], "dialogue": [add(d) for d in lesson["dialogue"]],
+            "grammar": {**g, "examples": [add(e) for e in g["examples"]]}}
+
+
+@app.post("/api/lesson")
+async def make_lesson(req: StartRequest):
+    require_llm()
+    sc = pick_scenario(S.scenarios, req.scenario)
+    out, cost = await run_in_threadpool(lesson_mod.make, state["review_llm"], S, sc, DATA)
+    lid = uuid.uuid4().hex[:12]
+    state["lessons"][lid] = {"scenario": sc, "lesson": out, "cost": cost}
+    lesson_mod.save(DATA, lid, sc, out)
+    return {"id": lid, "scenario": scenario_info(sc), "lesson": with_readings(out), "cost": round(cost, 4)}
+
+
+@app.get("/api/lessons")
+def past_lessons():
+    """Every lesson made so far, newest first, for reading again (practising one again makes a new lesson)."""
+    out = []
+    for r in lesson_mod.saved(DATA):
+        sc = r["scenario"]
+        out.append({"id": r["id"], "date": r["created"], "lesson": with_readings(r["lesson"]),
+                    "scenario": {"id": sc.get("id"), "title": S.scenario_title(sc, L.CODE), "titles": sc.get("titles") or {},
+                                 "title_en": sc.get("title")}})
+    return out
 
 
 @app.post("/api/session/start")
 async def session_start(req: StartRequest):
     require_llm()
     sc = CFG["session"]
-    sess = Session(S, pick_scenario(S.scenarios, req.scenario), sc["minutes"],
-                   max_turns=sc.get("max_history_turns", 40), max_cost=sc.get("max_cost_usd", 1.0))
+    les = state["lessons"].get(req.lesson or "")
+    sess = Session(S, les["scenario"] if les else pick_scenario(S.scenarios, req.scenario), sc["minutes"],
+                   max_turns=sc.get("max_history_turns", 40), max_cost=sc.get("max_cost_usd", 1.0),
+                   memory=memory.load(DATA), lesson=les["lesson"] if les else None, cost=les["cost"] if les else 0.0)
     state["sessions"][sess.id] = sess
-    state["records"][sess.id] = SessionRecord(DATA, sess.id, sess.scenario,
-                                              {k: v["model"] for k, v in CFG["llm"].items()})
+    rec = SessionRecord(DATA, sess.id, sess.scenario, {k: v["model"] for k, v in CFG["llm"].items()})
+    if les:
+        rec.data["lesson"] = les["lesson"]
+    state["records"][sess.id] = rec
 
     async def produce(q):
         q.put_nowait(line({"type": "session", "id": sess.id, "scenario": scenario_info(sess.scenario)}))
@@ -403,13 +442,33 @@ async def session_review(req: EndRequest):
     if not rec.data["ended"]:
         rec.finish(sess.cost)
     review, cost = await run_in_threadpool(build_review, state["review_llm"], S, rec.dir)
+    append_log(DATA, rec.dir, review)
+    try:
+        _, mem_cost = await run_in_threadpool(memory.update, state["review_llm"], S, DATA, review)
+        cost += mem_cost
+        mem_updated = True
+    except Exception:  # noqa: BLE001 - the review itself is done; memory catches up next time
+        traceback.print_exc()
+        mem_updated = False
     sess.cost += cost
     rec.finish(sess.cost)
-    append_log(DATA, rec.dir, review)
     user_turns = [{"said": t["text"], "lang": t["lang"], **t.get("review", {})}
                   for t in review["session"]["turns"] if t["role"] == "user"]
     return {"dir": rec.dir.name, "expressions": review["expressions"], "turns": user_turns,
+            "lesson_use": review.get("lesson_use", []), "memory_updated": mem_updated,
             "cost": round(sess.cost, 4), "review_cost": round(cost, 4), "videos": video_files(rec.dir)}
+
+
+@app.get("/api/memory")
+def get_memory():
+    """What the tutor remembers about the learner (data/learner.json)."""
+    return memory.load(DATA)
+
+
+@app.put("/api/memory")
+def put_memory(mem: dict):
+    """The learner's own edits; the next review keeps them unless the session clearly shows otherwise."""
+    return memory.save(DATA, mem)
 
 
 # ---------------------------------------------------------------- after the session

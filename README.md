@@ -2,10 +2,11 @@
 
 ## About
 
-A local, voice-first speaking tutor: a character you design leads conversations in the language you are learning,
-speaks with a voice you trained yourself (GPT-SoVITS) from ~25 minutes of recordings, corrects what sounds
-unnatural, and turns every session into a review video. Runs on Linux or WSL2 with an NVIDIA GPU (6 GB+).
-**Requires a [Claude API](https://console.anthropic.com/) key** (pay as you go, about $0.25 per 12-minute session).
+A local, voice-first speaking tutor. Each session is a short lesson on the topic (key phrases, a grammar point, a
+model dialogue), a 5-minute conversation with a character you design, speaking in a voice you trained yourself
+(GPT-SoVITS, ~25 minutes of recordings), then corrections and a review video. The tutor remembers your level,
+recurring mistakes and past topics, and the next lesson builds on them. Runs on Linux or WSL2 with an NVIDIA GPU (6 GB+).
+**Requires a [Claude API](https://console.anthropic.com/) key** (pay as you go, about $0.15 per session).
 
 ## Quick start
 

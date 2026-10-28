@@ -13,82 +13,132 @@
   <span id="status" class="pill muted" data-i18n="connecting">Connecting…</span>
 </header>
 
+<div class="layout">
+<nav id="nav">
+  <button data-view="practice" class="active" data-i18n="nav_practice">Practice</button>
+  <button data-view="lesson" data-i18n="nav_lesson">Today's lesson</button>
+  <button data-view="lessons" data-i18n="nav_lessons">Past lessons</button>
+  <button data-view="history" data-i18n="nav_history">Review videos</button>
+  <button data-view="memory" data-i18n="nav_memory">Memory</button>
+  <button data-view="tts" data-i18n="nav_tts">TTS test</button>
+</nav>
+
 <main>
-  <section class="topic">
-    <span class="label" data-i18n="now">Now</span>
-    <span id="topic">—</span>
-    <span id="topic-native" class="muted"></span>
-    <span id="progress" class="muted"></span>
-    <span id="timer" class="muted timer"></span>
-    <span id="cost" class="muted small" data-i18n-title="cost_title"></span>
-  </section>
+  <!-- practice: warm-up, conversation, feedback, review -->
+  <div class="view" id="view-practice">
+    <section class="topic">
+      <span class="label" data-i18n="now">Now</span>
+      <span id="topic">—</span>
+      <span id="topic-native" class="muted"></span>
+      <span id="progress" class="muted"></span>
+      <span id="timer" class="muted timer"></span>
+      <span id="cost" class="muted small" data-i18n-title="cost_title"></span>
+    </section>
 
-  <section class="card tutor">
-    <div class="avatar" id="avatar">?</div>
-    <div class="lines">
-      <p id="line" class="tl" data-i18n="intro_line">Press “Start warm-up” to begin.</p>
-      <p id="reading" class="reading"></p>
-      <p id="translation" class="translation hidden"></p>
-      <div id="note" class="note hidden"></div>
-      <div class="row">
-        <button id="replay" disabled data-i18n="replay">▶ Replay</button>
-        <button id="show-tr" disabled data-i18n="show_translation">Show translation</button>
-        <span id="ttsinfo" class="muted small"></span>
+    <section id="keypoints" class="card keypoints hidden">
+      <div class="kp-head"><span data-i18n="key_points">Today's key points</span>
+        <button id="kp-open" class="small" data-i18n="open_lesson">Open the lesson</button></div>
+      <div id="kp-body"></div>
+    </section>
+
+    <section class="card tutor">
+      <div class="avatar" id="avatar">?</div>
+      <div class="lines">
+        <p id="line" class="tl" data-i18n="intro_line">Press “Start warm-up” to begin.</p>
+        <p id="reading" class="reading"></p>
+        <p id="translation" class="translation hidden"></p>
+        <div id="note" class="note hidden"></div>
+        <div class="row">
+          <button id="replay" disabled data-i18n="replay">▶ Replay</button>
+          <button id="show-tr" disabled data-i18n="show_translation">Show translation</button>
+          <span id="ttsinfo" class="muted small"></span>
+        </div>
+        <div id="hintbox" class="hintbox hidden"></div>
       </div>
-      <div id="hintbox" class="hintbox hidden"></div>
-    </div>
-  </section>
+    </section>
 
-  <section class="controls">
-    <button id="start" class="primary" data-i18n="start_warmup">Start warm-up</button>
-    <select id="scenario" class="hidden"></select>
-    <button id="convo" class="primary hidden" data-i18n="start_convo">Start conversation</button>
-    <button id="rec" class="rec" disabled data-i18n="rec">Hold to talk (or hold Space)</button>
-    <button id="hint" disabled data-i18n="hint">Hint</button>
-    <button id="retry" class="hidden" disabled data-i18n="retry">Try again</button>
-    <button id="next" class="hidden" disabled data-i18n="next">Next →</button>
-    <button id="end" class="hidden" disabled data-i18n="end">End</button>
-  </section>
+    <section class="controls">
+      <button id="start" class="primary" data-i18n="start_warmup">Start warm-up</button>
+      <select id="scenario" class="hidden"></select>
+      <button id="lesson" class="primary hidden" data-i18n="start_lesson">Lesson first</button>
+      <button id="convo" class="hidden" data-i18n="start_convo">Start conversation</button>
+      <button id="rec" class="rec" disabled data-i18n="rec">Hold to talk (or hold Space)</button>
+      <button id="hint" disabled data-i18n="hint">Hint</button>
+      <button id="retry" class="hidden" disabled data-i18n="retry">Try again</button>
+      <button id="next" class="hidden" disabled data-i18n="next">Next →</button>
+      <button id="end" class="hidden" disabled data-i18n="end">End</button>
+    </section>
 
-  <section class="card">
-    <h2 data-i18n="my_transcript">My transcript</h2>
-    <p id="mine" class="tl muted">—</p>
-    <p id="minereading" class="reading"></p>
-  </section>
+    <section class="card">
+      <h2 data-i18n="my_transcript">My transcript</h2>
+      <p id="mine" class="tl muted">—</p>
+      <p id="minereading" class="reading"></p>
+    </section>
 
-  <section class="card">
-    <h2 data-i18n="feedback">Feedback</h2>
-    <div id="feedback" class="muted" data-i18n="feedback_idle"></div>
-  </section>
+    <section class="card">
+      <h2 data-i18n="feedback">Feedback</h2>
+      <div id="feedback" class="muted" data-i18n="feedback_idle"></div>
+    </section>
 
-  <section id="reviewbox" class="card hidden">
-    <h2 data-i18n="review">Review</h2>
-    <div id="review" class="muted" data-i18n="preparing"></div>
-  </section>
+    <section id="reviewbox" class="card hidden">
+      <h2 data-i18n="review">Review</h2>
+      <div id="review" class="muted" data-i18n="preparing"></div>
+    </section>
 
-  <details id="logbox" class="card">
-    <summary data-i18n="session_log">This session's transcript</summary>
-    <ol id="log" class="log"></ol>
-  </details>
+    <details id="logbox" class="card">
+      <summary data-i18n="session_log">This session's transcript</summary>
+      <ol id="log" class="log"></ol>
+    </details>
+  </div>
 
-  <details id="histbox" class="card" open>
-    <summary data-i18n="history">Past sessions (review videos)</summary>
-    <ol id="history" class="log history"></ol>
-  </details>
+  <!-- today's lesson -->
+  <div class="view hidden" id="view-lesson">
+    <div id="lessonbody"><p class="muted" data-i18n="no_lesson_yet"></p></div>
+  </div>
 
-  <details class="card">
-    <summary data-i18n="tts_test">TTS test</summary>
-    <div class="row">
-      <select id="t-emo">
-        <option>neutral</option><option>happy</option><option>shy</option>
-        <option>sad</option><option>surprised</option><option>angry</option>
-      </select>
-      <button id="t-say" data-i18n="synthesize">Synthesize</button>
-    </div>
-    <textarea id="t-text" rows="3"></textarea>
-    <pre id="t-log" class="small"></pre>
-  </details>
+  <!-- past lessons -->
+  <div class="view hidden" id="view-lessons">
+    <section class="card">
+      <h2 data-i18n="nav_lessons">Past lessons</h2>
+      <ol id="lessons" class="log history"></ol>
+    </section>
+    <div id="pastlesson"></div>
+  </div>
+
+  <!-- past sessions with their review videos -->
+  <div class="view hidden" id="view-history">
+    <section class="card">
+      <h2 data-i18n="history">Past sessions (review videos)</h2>
+      <ol id="history" class="log history"></ol>
+    </section>
+  </div>
+
+  <!-- what the tutor remembers -->
+  <div class="view hidden" id="view-memory">
+    <section class="card">
+      <h2 data-i18n="memory">What the tutor remembers about you</h2>
+      <p class="muted small" data-i18n="mem_note"></p>
+      <div id="memory"></div>
+      <div class="row"><button id="mem-save" data-i18n="mem_save">Save</button><span id="mem-status" class="muted small"></span></div>
+    </section>
+  </div>
+
+  <div class="view hidden" id="view-tts">
+    <section class="card">
+      <h2 data-i18n="tts_test">TTS test</h2>
+      <div class="row">
+        <select id="t-emo">
+          <option>neutral</option><option>happy</option><option>shy</option>
+          <option>sad</option><option>surprised</option><option>angry</option>
+        </select>
+        <button id="t-say" data-i18n="synthesize">Synthesize</button>
+      </div>
+      <textarea id="t-text" rows="3"></textarea>
+      <pre id="t-log" class="small"></pre>
+    </section>
+  </div>
 </main>
+</div>
 
 <div id="pop" class="pop hidden" role="dialog"></div>
 

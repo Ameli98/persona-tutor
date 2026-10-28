@@ -22,6 +22,8 @@ for new behaviour.
 | Tutor character | a persona YAML (`personas/`, or a private one under `data/`) referenced by `config.yaml: persona` |
 | Topics | scenario YAMLs: `id`, `title` (English), `titles: {code: ...}`, `setting`, `goal`, `angles` |
 | Prompts | `tutor/backend/prompts.py` (reply / feedback / word explanation / rephrase), `tutor/backend/review.py` (after-session review), `voice/emotion.py` |
+| Lesson before the conversation | `tutor/backend/lesson.py` (prompt + schema; saved to `data/lessons/`); the reply prompt's `lesson_section`; the review's `lesson_use` |
+| What the tutor remembers | `tutor/backend/memory.py` (`data/learner.json`: fields, caps, update prompt); edited on the page's Memory view |
 | Target-language behaviour | `tutor/lang/<code>.py` — interface documented in `tutor/lang/__init__.py`; warm-up sentences in `tutor/lang/<code>_warmup.yaml` |
 | UI text | `tutor/web/i18n.js` (every key in `en` must exist; other languages fall back to `en`) |
 | Video look and labels | `tutor/video/render.py` (layout), `tutor/video/review_video.py` (`LABELS`, theme from config) |

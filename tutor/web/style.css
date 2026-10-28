@@ -37,7 +37,18 @@ header {
 }
 h1 { font-size: 18px; margin: 0 auto 0 0; }
 h2 { font-size: 13px; margin: 0 0 6px; color: var(--muted); font-weight: 600; }
-main { max-width: 760px; margin: 0 auto; padding: 16px; display: grid; gap: 12px; }
+.layout { display: flex; align-items: flex-start; max-width: 1000px; margin: 0 auto; }
+nav { position: sticky; top: 0; display: flex; flex-direction: column; gap: 4px; padding: 16px 0 16px 16px; width: 170px; flex: 0 0 auto; }
+nav button { text-align: left; border: none; background: transparent; padding: 8px 12px; }
+nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+main { flex: 1; min-width: 0; max-width: 760px; padding: 16px; }
+.view { display: grid; gap: 12px; }
+.view.hidden { display: none; }
+@media (max-width: 720px) {  /* phone: the menu becomes a scrolling row above the page */
+  .layout { flex-direction: column; align-items: stretch; }
+  nav { position: static; flex-direction: row; overflow-x: auto; width: auto; padding: 8px 16px 0; }
+  nav button { white-space: nowrap; }
+}
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
 .pill { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
 .pill.muted { background: transparent; border: 1px solid var(--line); color: var(--muted); }
@@ -124,3 +135,25 @@ pre { white-space: pre-wrap; word-break: break-all; margin: 8px 0 0; color: var(
 .vlog { max-height: 180px; overflow: auto; white-space: pre-wrap; }
 .history li { margin-bottom: 14px; }
 .vid .k { color: var(--muted); font-size: 12px; }
+
+/* lesson */
+.ls-line { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; }
+.ls-line .play { padding: 2px 9px; font-size: 12px; flex: 0 0 auto; }
+.ls-t { font-size: 17px; }
+.ls-who { color: var(--muted); font-size: 12px; margin: 8px 0 -4px 38px; }
+.ls-line.learner { margin-left: 24px; }
+.ls-expl { font-size: 14px; margin: 4px 0; }
+.playall { margin-left: 8px; padding: 2px 10px; }
+.lu { display: inline-block; min-width: 9em; font-size: 13px; }
+.lu.used_ok { color: var(--ok); } .lu.used_wrong { color: var(--extra); } .lu.not_used { color: var(--muted); }
+/* memory */
+label.mem { display: block; margin: 8px 0; }
+label.mem .k { font-weight: 600; font-size: 13px; }
+label.mem textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; font: inherit; font-size: 14px; }
+/* key points: what to use in the conversation */
+.keypoints { border: 2px solid var(--accent); background: var(--accent-soft); }
+.kp-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.kp-chip { display: inline-block; margin: 3px 6px 3px 0; padding: 3px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 15px; }
+.kp-grammar { font-weight: 600; margin-top: 4px; }
+.ls-title { font-size: 18px; color: var(--text); margin: 0; }
+.ls-link { color: inherit; }
