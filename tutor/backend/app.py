@@ -432,6 +432,7 @@ async def turn(session_id: str = Form(...), audio: UploadFile = File(...)):
             return
         rec = state["records"][sess.id]
         user_turn = rec.add_user(text, lang, wav)
+        turn_index = len(rec.data["turns"]) - 1
         prev = sess.last_line
 
         async def feedback():
@@ -440,11 +441,11 @@ async def turn(session_id: str = Form(...), audio: UploadFile = File(...)):
                 return
             try:
                 fb = await run_in_threadpool(sess.feedback, state["feedback_llm"], prev, text)
+                if fb["verdict"] == "error" and fb["natural_rewrite"]:
+                    category = fb["category"] if fb["category"] != "none" else "other"
+                    fb["mistake_id"] = mistakes.add(MISTAKES_DB, text, fb["natural_rewrite"], category, fb["feedback"], rec.dir.name)
                 rec.set_feedback(user_turn, fb)
-                if not fb["natural"] and fb["natural_rewrite"]:
-                    mistakes.add(MISTAKES_DB, text, fb["natural_rewrite"], fb.get("category") or "other",
-                                 fb["feedback"], rec.dir.name)
-                q.put_nowait(line({"type": "feedback", **fb}))
+                q.put_nowait(line({"type": "feedback", **fb, "turn": turn_index}))
             except Exception as e:  # noqa: BLE001 - feedback is optional; keep the conversation going
                 q.put_nowait(line({"type": "feedback_error", "message": f"{type(e).__name__}: {e}"}))
 
@@ -459,6 +460,25 @@ async def turn(session_id: str = Form(...), audio: UploadFile = File(...)):
 
 class EndRequest(BaseModel):
     session_id: str
+
+
+class DismissRequest(BaseModel):
+    session_id: str
+    turn: int
+
+
+@app.post("/api/feedback/dismiss")
+def dismiss_feedback(req: DismissRequest):
+    """The learner says this wasn't a mistake: out of the mistakes table, and the review and memory ignore it."""
+    rec = state["records"].get(req.session_id)
+    fb = rec.data["turns"][req.turn].get("feedback") if rec and 0 <= req.turn < len(rec.data["turns"]) else None
+    if not fb:
+        raise HTTPException(404, "no feedback on that line")
+    if "mistake_id" in fb:
+        mistakes.delete(MISTAKES_DB, fb.pop("mistake_id"))
+    fb["dismissed"] = True
+    rec.save()
+    return {"ok": True}
 
 
 @app.post("/api/session/end")

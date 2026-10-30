@@ -74,8 +74,9 @@ Below is the transcript of their conversation with their tutor, {s.persona['name
 The learner's lines come from speech recognition (ASR): usually no punctuation, occasionally misrecognised words. Do not comment on punctuation or sentence breaks, and do not count likely recognition errors (homophones, wrong characters) as the learner's mistakes. Add natural punctuation to the corrected and model versions.
 For every learner line produce:
 
-- corrected: the corrected version. Keep the learner's own words and content as much as possible; fix only unnatural wording, particles/function words, register mixing, written style in speech, literal translations from {n}, redundancy.
-  If the line is already natural, copy it and leave corrected_reason empty; otherwise corrected_reason = one sentence in {n}.
+- corrected: fix only real mistakes, what a native speaker would find wrong or could misunderstand (particles and function words, conjugation, register clashes, literal translations from {n}), keeping the learner's own words and content. Wording that is merely stiff or plain stays as it is: the place to improve it is upgraded.
+  If nothing is wrong, copy the line and leave corrected_reason empty; otherwise corrected_reason = one sentence in {n}.
+  A line marked "speech recognition probably misheard": corrected = what they likely said, corrected_reason empty. A line marked "not a mistake": copy it, corrected_reason empty. Neither goes into expressions as a mistake.
   If the line is in {n} (they asked a question in their own language), corrected = how to ask it naturally in {t}, and corrected_reason says so.
 - upgraded: a model answer. Keep their meaning and stance, but say it the way a native speaker would in this situation: fuller (reasons, concrete examples, responding to what the other person said), natural spoken {s.lang.REGISTER}, 1–3 sentences, not too long.
   upgrade_note: one sentence in {n} on what the model answer adds and why it is better.
@@ -101,6 +102,17 @@ def _bare(text: str) -> str:
     return re.sub(r"[\s、。，,.！？!?「」…]", "", text)
 
 
+def live_note(fb: dict | None) -> str:
+    """What the live feedback said about a line, for the review. Sessions from before the verdicts have only natural."""
+    if not fb or fb.get("natural", True) and not fb.get("dismissed"):
+        return ""
+    if fb.get("dismissed"):
+        return " (the learner says this is not a mistake)"
+    if fb.get("verdict") == "misheard":
+        return f" (speech recognition probably misheard; they likely said: {fb['natural_rewrite']})"
+    return f" (live feedback suggested: {fb['natural_rewrite']})"
+
+
 def transcript_for_review(session: dict, tutor_name: str) -> tuple[str, list[int]]:
     lines, user_idx = [], []
     for i, t in enumerate(session["turns"]):
@@ -109,9 +121,7 @@ def transcript_for_review(session: dict, tutor_name: str) -> tuple[str, list[int
         else:
             n = len(user_idx)
             user_idx.append(i)
-            note = ""
-            if t.get("feedback") and not t["feedback"].get("natural", True):
-                note = f" (live feedback suggested: {t['feedback']['natural_rewrite']})"
+            note = live_note(t.get("feedback"))
             lines.append(f"[U{n}] Learner: {t['text']}{note}")
     return "\n".join(lines), user_idx
 

@@ -419,7 +419,7 @@ async function runReply(url, init, { onTranscript } = {}) {
         $("feedback").innerHTML = `<span class="muted">${esc(t(ev.lang === "target" ? "checking" : "not_graded"))}</span>`;
       } else if (ev.type === "feedback") {
         showFeedback(ev);
-        if (S.lastUserLi && !ev.natural) S.lastUserLi.innerHTML += `<div class="fbx">→ ${esc(ev.natural_rewrite)}</div>`;
+        if (S.lastUserLi && !ev.natural) S.lastUserLi.innerHTML += `<div class="fbx">${ev.verdict === "misheard" ? "?" : "→"} ${esc(ev.natural_rewrite)}</div>`;
       } else if (ev.type === "feedback_error") {
         $("feedback").innerHTML = `<span class="muted">${esc(t("feedback_unavailable", { msg: ev.message }))}</span>`;
       } else if (ev.type === "reply_text") {
@@ -456,11 +456,20 @@ async function runReply(url, init, { onTranscript } = {}) {
 
 function showFeedback(fb) {
   if (fb.natural) { $("feedback").innerHTML = `<span class="fb-ok">${esc(t("natural"))}</span>`; return; }
+  const said = `<div class="fbrow"><span class="k">${esc(t("fb_said"))}</span><span class="fb-said">${esc($("mine").dataset.text)}</span></div>`;
+  const why = `<div class="fbrow"><span class="k">${esc(t("fb_why"))}</span>${esc(fb.feedback)}</div>`;
+  const better = (key) => `<div class="fbrow"><span class="k">${esc(t(key))}</span><span class="fb-better">${esc(fb.natural_rewrite)}</span></div>`;
   $("feedback").innerHTML =
-    `<div class="fbrow"><span class="k">${esc(t("fb_said"))}</span><span class="fb-said">${esc($("mine").dataset.text)}</span></div>` +
-    `<div class="fbrow"><span class="k">${esc(t("fb_better"))}</span><span class="fb-better">${esc(fb.natural_rewrite)}</span></div>` +
-    `<div class="fbrow"><span class="k">${esc(t("fb_why"))}</span>${esc(fb.feedback)}</div>`;
+    fb.verdict === "misheard" ? `<div class="fb-soft">${esc(t("fb_misheard"))}</div>${better("fb_meant")}` :
+    fb.verdict === "suggestion" ? `<div class="fb-soft">${esc(t("fb_suggestion"))}</div>${better("fb_better")}${why}` :
+    `${said}${better("fb_better")}${why}<div class="row"><button id="fb-dismiss" class="small">${esc(t("fb_dismiss"))}</button></div>`;
   $("feedback").classList.remove("muted");
+  const dismiss = $("fb-dismiss");
+  if (dismiss) dismiss.onclick = async () => {
+    dismiss.disabled = true;
+    const res = await fetch("/api/feedback/dismiss", postJSON({ session_id: S.session, turn: fb.turn }));
+    dismiss.textContent = res.ok ? t("fb_dismissed") : t("error", { msg: res.statusText });
+  };
 }
 
 async function startConvo() {

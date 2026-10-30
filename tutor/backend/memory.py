@@ -95,7 +95,11 @@ def update(llm, s: Settings, data: Path, review: dict) -> tuple[dict, float]:
             lines.append(f"Tutor: {t['text']}")
             continue
         rv = t.get("review") or {}
-        fix = f" → corrected: {rv['corrected']} ({rv['corrected_reason']})" if rv.get("corrected_reason") else " (natural)"
+        fb = t.get("feedback") or {}
+        if fb.get("dismissed") or fb.get("verdict") == "misheard":
+            fix = " (not a mistake: the learner said so, or speech recognition misheard it)"
+        else:
+            fix = f" → corrected: {rv['corrected']} ({rv['corrected_reason']})" if rv.get("corrected_reason") else " (natural)"
         lines.append(f"Learner: {t['text']}{fix}")
     use = review.get("lesson_use") or []
     lesson = "\n".join(f"- {u['item']}: {'used' if u['used'] else 'not used'}"

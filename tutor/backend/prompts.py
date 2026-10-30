@@ -23,16 +23,20 @@ REPLY_SCHEMA = {
     "additionalProperties": False,
 }
 
+# what the live feedback says about a line; only "error" counts against the learner (mistakes.db, memory)
+VERDICTS = ("natural", "suggestion", "error", "misheard")
+
+
 def feedback_schema(s: Settings) -> dict:
     return {
         "type": "object",
         "properties": {
-            "natural": {"type": "boolean"},
+            "verdict": {"type": "string", "enum": list(VERDICTS)},
             "natural_rewrite": {"type": "string"},
             "feedback": {"type": "string"},
             "category": {"type": "string", "enum": ["none", *s.lang.MISTAKE_CATEGORIES]},
         },
-        "required": ["natural", "natural_rewrite", "feedback", "category"],
+        "required": ["verdict", "natural_rewrite", "feedback", "category"],
         "additionalProperties": False,
     }
 
@@ -156,14 +160,18 @@ WRAP_UP = ("(System: practice time is up. Wrap up now — reply to what the lear
 def feedback_system(s: Settings) -> str:
     t, n = s.target, s.native
     categories = "\n".join(f"  {k}: {v}" for k, v in s.lang.MISTAKE_CATEGORIES.items())
-    return f"""You are a strict but not nitpicky native {t} editor. The learner (native language {n}; {t} level: {s.level}) is chatting with a friend in {s.lang.REGISTER}.
-Judge whether the learner's utterance is natural *as {t}*. Look only at:
-- unnatural wording or collocations, redundant words
+    return f"""You are an experienced native {t} teacher listening to a learner (native language {n}; {t} level: {s.level}) chat with a friend in {s.lang.REGISTER}. Decide what, if anything, is worth telling them. Interrupting them too often does more harm than a small imperfection, so most understandable lines need nothing.
+The line comes from speech recognition (ASR): usually no punctuation, sometimes the wrong word. Never comment on punctuation, question marks or sentence breaks. Whether it is on topic doesn't matter (the other person leads the topic); use the context only for tone, politeness and to spot misrecognised words.
+
+verdict, the first that applies:
+- misheard: the odd part is probably the recogniser's fault, not the learner's: a word that makes no sense in context but sounds like one that does (homophones, similar sounds). natural_rewrite = the line with only the misheard word swapped for the similar-sounding one; feedback = one sentence in {n} saying what was probably misheard. Choose this over error whenever a similar-sounding word would make the line fine. A wrong particle or verb form is the learner's (error), not the recogniser's. Speech has no spelling: the wrong kanji or script for the right sound is always the recogniser's.
+- error: a native speaker would find it wrong or could misunderstand it. For example:
 {s.lang.FEEDBACK_FOCUS}
-The utterance comes from speech recognition (ASR): usually no punctuation, occasionally misrecognised words. Do not comment on punctuation or sentence breaks, and do not count likely recognition errors (homophones, wrong characters) as the learner's mistakes.
-Ignore basic grammar drills and whether the content is on topic or answers the other person's question (the other person leads the topic); use the context only to judge tone and politeness.
-- Natural: natural=true, natural_rewrite and feedback are empty strings, category "none". Do not invent problems.
-- Unnatural: natural=false, natural_rewrite = the whole sentence said naturally (same register, keeping the meaning and the learner's words where possible), feedback = one sentence written in {n} (not in {t}) explaining why, category = the main kind of problem:
+  natural_rewrite = the whole line corrected, changing only what is wrong; feedback = one sentence in {n} saying why; category = the main kind of problem.
+- suggestion: nothing is wrong, but there is a clearly more common way to say it that is worth learning at this level, including wording that is too formal or literary for a chat (that is style, not an error). natural_rewrite = that way; feedback = one sentence in {n}. Use it sparingly; never for a matter of taste.
+- natural: everything else, including wording that is a little stiff, textbook-like, plain or not what you would personally say. When in doubt, natural.
+
+Every natural_rewrite keeps what the learner actually said: never put in words or meaning they didn't say, even if the context suggests them. Use natural_rewrite and feedback only as described: both are empty strings for natural. category is "none" unless the verdict is error. Kinds of error:
 {categories}
 Output JSON only."""
 

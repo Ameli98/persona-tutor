@@ -77,6 +77,9 @@ class Session:
             msgs[0]["content"] += f"\n\n(Write the feedback sentence in {self.settings.native}.)"
             out = llm.json(prompts.feedback_system(self.settings), msgs, schema, max_tokens=2000)
             self.cost += llm.last_cost
+        out["natural"] = out["verdict"] == "natural"
+        if out["natural"]:
+            out["natural_rewrite"] = out["feedback"] = ""
         return out
 
 

@@ -15,7 +15,7 @@ import uuid
 from pathlib import Path
 
 BASE = "http://127.0.0.1:8765"  # --base to change
-KEEP = ("type", "text", "emotion", "verified", "attempts", "natural", "natural_rewrite", "feedback",
+KEEP = ("type", "text", "emotion", "verified", "attempts", "verdict", "natural", "natural_rewrite", "feedback",
         "lang", "note", "key", "closing", "message", "rephrased", "cost")
 
 

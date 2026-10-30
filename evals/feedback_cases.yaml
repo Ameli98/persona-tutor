@@ -1,0 +1,59 @@
+# Cases for evals/feedback.py: does the live feedback leave fine lines alone, catch real mistakes, and blame the
+# speech recogniser rather than the learner when a word was probably misheard? All sentences are synthetic.
+#
+#   kind:  fine (must be natural) | stiff (natural or suggestion; never error) | error | misheard | either (error or misheard)
+#   tutor: what the other person just said
+#   say:   the learner's line, as the recogniser wrote it
+#   fix:   text the rewrite must contain (error, misheard)
+#   avoid: text it must not contain: words only the context suggests, which the learner never said
+
+cases:
+  - {id: fine_plain, kind: fine, tutor: 週末は何をしていましたか？, say: 週末は家でゆっくりしていました}
+  - {id: fine_short, kind: fine, tutor: 映画は好きですか？, say: はい好きです}
+  - {id: fine_reason, kind: fine, tutor: どうして京都に行きたいんですか？, say: お寺が好きだからです}
+  - {id: fine_opinion, kind: fine, tutor: 電車とバス、どちらがいいですか？, say: 電車のほうが早いと思います}
+  - {id: fine_question_mark, kind: fine, tutor: 今日は寒いですね。, say: そうですね？本当に寒いです？}
+  - {id: fine_filler, kind: fine, tutor: 最近どうですか？, say: えっと仕事が忙しいです}
+
+  - {id: stiff_often, kind: stiff, tutor: 休みの日は何をしますか？, say: 休日は映画を鑑賞することが多いです}
+  - {id: stiff_textbook, kind: stiff, tutor: 趣味は何ですか？, say: 私の趣味は料理をすることです}
+  - {id: stiff_youth, kind: stiff, tutor: いつから好きなんですか？, say: 幼少期から好きです}
+  - {id: stiff_however, kind: stiff, tutor: 旅行はどうでしたか？, say: 楽しかったです。しかし少し疲れました}
+  - {id: stiff_watashi, kind: stiff, tutor: 何か飲みますか？, say: 私はコーヒーを飲みたいと思います}
+  - {id: stiff_formal, kind: stiff, tutor: 明日、空いていますか？, say: はい、明日は時間があります}
+
+  - {id: err_ride, kind: error, tutor: どうやって来ましたか？, say: バスを乗りました, fix: バスに乗}
+  - {id: err_attend, kind: error, tutor: 昨日は何をしましたか？, say: パーティーを参加しました, fix: パーティーに参加}
+  - {id: err_adj_past, kind: error, tutor: 昨日の天気はどうでしたか？, say: 昨日は寒いでした, fix: 寒かった}
+  - {id: err_medicine, kind: error, tutor: 風邪は大丈夫ですか？, say: 薬を食べました, fix: 薬を飲}
+  - {id: err_na_adj, kind: error, tutor: どんな町ですか？, say: 静かの町です, fix: 静かな町}
+  - {id: err_conj, kind: error, tutor: 明日は何をしますか？, say: 友達に会うますと思います, fix: 会}
+
+  - {id: mis_sou, kind: misheard, tutor: じゃあ、駅で待ち合わせしましょうか？, say: はい、掃除しましょう, fix: そう}
+  - {id: mis_rain, kind: misheard, tutor: 昨日の天気はどうでしたか？, say: 飴が降っていました, fix: 雨}
+  - {id: mis_coffee, kind: misheard, tutor: 朝は何を飲みますか？, say: 毎朝コピーを飲みます, fix: コーヒー}
+  - {id: mis_park, kind: misheard, tutor: 子どものころ、どこで遊びましたか？, say: 友達と講演で遊びました, fix: 公園}
+  - {id: mis_movie, kind: misheard, tutor: 週末は何をしましたか？, say: 栄華を見に行きました, fix: 映画}
+  - {id: mis_chopsticks, kind: misheard, tutor: 日本料理を作るとき、何を使いますか？, say: 橋を使って食べます, fix: 箸}
+
+  # ---- added after the first prompt passed everything: the risk the easy cases can't show is a real mistake being
+  # excused as "misheard" (learners do make mistakes that sound like other words), and fine run-on or casual speech.
+  - {id: hard_err_te_form, kind: error, tutor: 昨日は何をしましたか？, say: 友達と遊ぶて楽しかったです, fix: 遊んで}
+  - {id: hard_err_tense, kind: error, tutor: 先週は何をしましたか？, say: 先週京都に行きます, fix: 行きました}
+  - {id: hard_err_meet, kind: error, tutor: 週末は誰かに会いましたか？, say: 友達を会いました, fix: 友達に会}
+  - {id: hard_err_i_adj, kind: error, tutor: どんな家に住んでいますか？, say: 大きいな家に住んでいます, fix: 大き}
+  - {id: hard_err_transitive, kind: error, tutor: 部屋はどうですか？, say: ドアが開けています, fix: 開}
+  - {id: hard_err_literal, kind: error, tutor: おいくつですか？, say: 私は二十歳を持っています, fix: 二十歳}
+  - {id: hard_err_suru, kind: error, tutor: 仕事は大変ですか？, say: 毎日残業をするになります, fix: 残業}
+  - {id: hard_fine_runon, kind: fine, tutor: 夏休みはどうでしたか？, say: 海に行きましたすごく楽しかったです}
+  - {id: hard_fine_soft, kind: fine, tutor: 辛いものは食べられますか？, say: うーん少しなら大丈夫です}
+  - {id: hard_stiff_literary, kind: stiff, tutor: 最近どうですか？, say: 多忙な日々を過ごしております}
+  - {id: hard_mis_kanji, kind: misheard, tutor: 東京の夏はどうですか？, say: 東京の夏は熱いです。汗をかきます, fix: 暑い}
+  - {id: hard_mis_name, kind: misheard, tutor: 今週の土曜日は何をしますか？, say: 土曜日は陶器に行きます。一泊します, fix: 東京}
+
+  # ---- from real use: a line the recogniser or the learner garbled was "fixed" with a word taken from the tutor's
+  # question, turning it into something the learner never said (these sentences are written for this file).
+  - {id: keep_vague_answer, kind: error, tutor: いつから料理をするようになりましたか？, say: いつのまにかそうになりました, fix: そうなりました, avoid: 料理}
+  - {id: keep_garbled, kind: either, tutor: どうして犬を飼い始めたんですか？, say: 気をつけたらそうなってました, fix: そう, avoid: 犬}
+  - {id: keep_particle, kind: error, tutor: 電車で来ましたか？, say: はい電車を来ました, fix: 電車で}
+  - {id: keep_short, kind: either, tutor: どの映画が一番好きですか？, say: あれが好きだと思いまする, fix: あれ, avoid: 映画}

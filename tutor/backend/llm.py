@@ -103,6 +103,11 @@ def read_key_file() -> str:
         return ""
 
 
+def fallback_args(model: str) -> dict:
+    """Server-side fallback rescues policy declines; Haiku doesn't offer it."""
+    return {} if "haiku" in model else {"betas": ["server-side-fallback-2026-07-01"], "fallbacks": "default"}
+
+
 class AnthropicLLM(_CostMixin):
     def __init__(self, model: str, effort: str = "low", key_env: str = "PERSONA_TUTOR_API_KEY"):
         import anthropic
@@ -118,8 +123,7 @@ class AnthropicLLM(_CostMixin):
         if not messages or messages[0]["role"] != "user":
             messages = [{"role": "user", "content": "（開始）"}] + messages
         resp = self.client.beta.messages.create(
-            model=self.model, max_tokens=max_tokens,
-            betas=["server-side-fallback-2026-07-01"], fallbacks="default",  # rescue policy declines
+            model=self.model, max_tokens=max_tokens, **fallback_args(self.model),
             system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             cache_control={"type": "ephemeral"},  # also cache the growing conversation prefix
             messages=messages,
@@ -150,8 +154,7 @@ class AnthropicLLM(_CostMixin):
             if tools:
                 extra = {"tools": tools, "tool_choice": {"type": "auto" if rnd < max_tool_rounds else "none"}}
             with self.client.beta.messages.stream(
-                model=self.model, max_tokens=max_tokens,
-                betas=["server-side-fallback-2026-07-01"], fallbacks="default",
+                model=self.model, max_tokens=max_tokens, **fallback_args(self.model),
                 system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
                 cache_control={"type": "ephemeral"},
                 messages=msgs,

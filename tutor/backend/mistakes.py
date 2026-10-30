@@ -23,10 +23,17 @@ def connect(db: Path) -> sqlite3.Connection:
 
 
 def add(db: Path, said: str, corrected: str, category: str, reason: str = "", session: str = "",
-        created: str | None = None):
+        created: str | None = None) -> int:
+    """Returns the row's id."""
     with connect(db) as con:
-        con.execute("INSERT INTO mistakes (created, session, said, corrected, category, reason) VALUES (?, ?, ?, ?, ?, ?)",
+        cur = con.execute("INSERT INTO mistakes (created, session, said, corrected, category, reason) VALUES (?, ?, ?, ?, ?, ?)",
                     (created or time.strftime("%Y-%m-%d %H:%M:%S"), session, said, corrected, category, reason))
+        return cur.lastrowid
+
+
+def delete(db: Path, row: int):
+    with connect(db) as con:
+        con.execute("DELETE FROM mistakes WHERE id = ?", (row,))
 
 
 def lookup(db: Path, category: str | None = None, limit: int = 5) -> list[dict]:

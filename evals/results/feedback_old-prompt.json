@@ -1,0 +1,268 @@
+{
+ "claude-sonnet-5-5": [
+  {
+   "id": "fine_plain",
+   "kind": "fine",
+   "say": "週末は家でゆっくりしていました",
+   "verdict": "natural",
+   "rewrite": "",
+   "why": "",
+   "passed": true,
+   "cost": 0.002993,
+   "seconds": 2.82
+  },
+  {
+   "id": "fine_short",
+   "kind": "fine",
+   "say": "はい好きです",
+   "verdict": "natural",
+   "rewrite": "",
+   "why": "",
+   "passed": true,
+   "cost": 0.002963,
+   "seconds": 3.95
+  },
+  {
+   "id": "fine_reason",
+   "kind": "fine",
+   "say": "お寺が好きだからです",
+   "verdict": "natural",
+   "rewrite": "",
+   "why": "",
+   "passed": true,
+   "cost": 0.0029855,
+   "seconds": 3.04
+  },
+  {
+   "id": "fine_opinion",
+   "kind": "fine",
+   "say": "電車のほうが早いと思います",
+   "verdict": "natural",
+   "rewrite": "",
+   "why": "",
+   "passed": true,
+   "cost": 0.002998,
+   "seconds": 3.03
+  },
+  {
+   "id": "fine_question_mark",
+   "kind": "fine",
+   "say": "そうですね？本当に寒いです？",
+   "verdict": "natural",
+   "rewrite": "",
+   "why": "",
+   "passed": true,
+   "cost": 0.000605,
+   "seconds": 2.46
+  },
+  {
+   "id": "fine_filler",
+   "kind": "fine",
+   "say": "えっと仕事が忙しいです",
+   "verdict": "natural",
+   "rewrite": "",
+   "why": "",
+   "passed": true,
+   "cost": 0.0005975,
+   "seconds": 2.17
+  },
+  {
+   "id": "stiff_often",
+   "kind": "stiff",
+   "say": "休日は映画を鑑賞することが多いです",
+   "verdict": "error",
+   "rewrite": "休みの日は映画を見ることが多いです",
+   "why": "「鑑賞する」and「休日」sound stiff and formal for casual chat; in conversation, use 「映画を見る」 (and echo 「休みの日」) instead.",
+   "passed": false,
+   "cost": 0.00136,
+   "seconds": 2.18
+  },
+  {
+   "id": "stiff_textbook",
+   "kind": "stiff",
+   "say": "私の趣味は料理をすることです",
+   "verdict": "natural",
+   "rewrite": "趣味は料理です",
+   "why": "",
+   "passed": true,
+   "cost": 0.000675,
+   "seconds": 1.37
+  },
+  {
+   "id": "stiff_youth",
+   "kind": "stiff",
+   "say": "幼少期から好きです",
+   "verdict": "error",
+   "rewrite": "小さい頃から好きです",
+   "why": "幼少期 is a stiff, written-style word; in casual polite conversation, people say 小さい頃から or 子どもの頃から instead.",
+   "passed": false,
+   "cost": 0.001165,
+   "seconds": 1.87
+  },
+  {
+   "id": "stiff_however",
+   "kind": "stiff",
+   "say": "楽しかったです。しかし少し疲れました",
+   "verdict": "error",
+   "rewrite": "楽しかったです。でも少し疲れました",
+   "why": "\"しかし\" is a stiff, written-style connector; in casual polite conversation use \"でも\" or \"ただ\" instead.",
+   "passed": false,
+   "cost": 0.00124,
+   "seconds": 2.26
+  },
+  {
+   "id": "stiff_watashi",
+   "kind": "stiff",
+   "say": "私はコーヒーを飲みたいと思います",
+   "verdict": "error",
+   "rewrite": "コーヒーが飲みたいです",
+   "why": "Saying 私は and 飲みたいと思います sounds stiff and overly explicit in casual conversation; a natural reply just drops the topic and uses 〜たいです.",
+   "passed": false,
+   "cost": 0.0013325,
+   "seconds": 3.44
+  },
+  {
+   "id": "stiff_formal",
+   "kind": "stiff",
+   "say": "はい、明日は時間があります",
+   "verdict": "natural",
+   "rewrite": "",
+   "why": "",
+   "passed": true,
+   "cost": 0.0005975,
+   "seconds": 1.32
+  },
+  {
+   "id": "err_ride",
+   "kind": "error",
+   "say": "バスを乗りました",
+   "verdict": "error",
+   "rewrite": "バスに乗りました",
+   "why": "The verb 乗る takes the particle に for the vehicle you ride (バスに乗る), not を.",
+   "passed": true,
+   "cost": 0.001,
+   "seconds": 1.58
+  },
+  {
+   "id": "err_attend",
+   "kind": "error",
+   "say": "パーティーを参加しました",
+   "verdict": "error",
+   "rewrite": "パーティーに参加しました",
+   "why": "The verb 参加する takes the particle に (〜に参加する), not を.",
+   "passed": true,
+   "cost": 0.00094,
+   "seconds": 1.64
+  },
+  {
+   "id": "err_adj_past",
+   "kind": "error",
+   "say": "昨日は寒いでした",
+   "verdict": "error",
+   "rewrite": "昨日は寒かったです",
+   "why": "An i-adjective can't be followed by でした; put the adjective in the past tense (寒かった) and then add です.",
+   "passed": true,
+   "cost": 0.00109,
+   "seconds": 1.78
+  },
+  {
+   "id": "err_medicine",
+   "kind": "error",
+   "say": "薬を食べました",
+   "verdict": "error",
+   "rewrite": "薬を飲みました",
+   "why": "In Japanese, medicine is taken with the verb 飲む (drink), not 食べる, even when it is a pill.",
+   "passed": true,
+   "cost": 0.00107,
+   "seconds": 1.71
+  },
+  {
+   "id": "err_na_adj",
+   "kind": "error",
+   "say": "静かの町です",
+   "verdict": "error",
+   "rewrite": "静かな町です",
+   "why": "静か is a na-adjective, so it needs な before a noun: 静かな町.",
+   "passed": true,
+   "cost": 0.0009225,
+   "seconds": 1.64
+  },
+  {
+   "id": "err_conj",
+   "kind": "error",
+   "say": "友達に会うますと思います",
+   "verdict": "error",
+   "rewrite": "友達に会うと思います",
+   "why": "Inside a quoted 'と思います' clause, the verb should be in plain form (会う), not the polite 会います; and 会うます is not a valid form.",
+   "passed": true,
+   "cost": 0.0011975,
+   "seconds": 2.17
+  },
+  {
+   "id": "mis_sou",
+   "kind": "misheard",
+   "say": "はい、掃除しましょう",
+   "verdict": "error",
+   "rewrite": "はい、そうしましょう",
+   "why": "「掃除しましょう」means \"let's clean\", which is likely a misheard or wrong word here; to agree to a suggestion, say 「そうしましょう」.",
+   "passed": false,
+   "cost": 0.001285,
+   "seconds": 1.65
+  },
+  {
+   "id": "mis_rain",
+   "kind": "misheard",
+   "say": "飴が降っていました",
+   "verdict": "error",
+   "rewrite": "雨が降っていました",
+   "why": "飴 means 'candy'; for rain you need 雨 (あめ), which differs only in pitch accent, so the sentence as written says candy was falling.",
+   "passed": false,
+   "cost": 0.001195,
+   "seconds": 2.45
+  },
+  {
+   "id": "mis_coffee",
+   "kind": "misheard",
+   "say": "毎朝コピーを飲みます",
+   "verdict": "error",
+   "rewrite": "毎朝コーヒーを飲みます",
+   "why": "\"コピー\" means a photocopy; the word for coffee is \"コーヒー\" with a long vowel, so the pronunciation needs fixing.",
+   "passed": false,
+   "cost": 0.00128,
+   "seconds": 1.78
+  },
+  {
+   "id": "mis_park",
+   "kind": "misheard",
+   "say": "友達と講演で遊びました",
+   "verdict": "natural",
+   "rewrite": "友達と公園で遊びました",
+   "why": "「講演」(lecture) is likely a speech recognition error, so I'm not counting it against you; the sentence is natural once it reads 公園 (park).",
+   "passed": false,
+   "cost": 0.0012075,
+   "seconds": 2.12
+  },
+  {
+   "id": "mis_movie",
+   "kind": "misheard",
+   "say": "栄華を見に行きました",
+   "verdict": "error",
+   "rewrite": "映画を見に行きました",
+   "why": "栄華 (eika, 'glory') is the wrong word here; the word for 'movie' is 映画 (eiga), so 映画を見に行きました sounds natural.",
+   "passed": false,
+   "cost": 0.00126,
+   "seconds": 1.88
+  },
+  {
+   "id": "mis_chopsticks",
+   "kind": "misheard",
+   "say": "橋を使って食べます",
+   "verdict": "natural",
+   "rewrite": "お箸を使って食べます",
+   "why": "The word for chopsticks is 箸 (はし) read with the pronunciation 'hashi', but 橋 means 'bridge'; this is likely a homophone ASR error, so it is not the learner's mistake. Still, 食べます doesn't fit the question about cooking, but that is topic-related and ignored.",
+   "passed": false,
+   "cost": 0.001715,
+   "seconds": 2.18
+  }
+ ]
+}

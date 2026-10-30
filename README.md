@@ -109,6 +109,49 @@ for the Ask tab.
   is answered in one `tool_result` message, inputs are validated by the tool (bad input returns an error result
   the model can fix), and after 3 rounds tools are disabled (`tool_choice: none`) so a reply always arrives.
 
+## Live feedback: errors, suggestions and misheard words
+
+Each line gets one of four verdicts: **natural**, **suggestion** (nothing wrong, another common way to say it),
+**error** (a native speaker would find it wrong) or **misheard** (probably the speech recogniser's fault). Only errors
+go into `data/mistakes.db` and the learner memory, and a "Not a mistake" button takes one back out.
+
+```bash
+python -m evals.feedback --label mine --models claude-sonnet-5-5    # ~$0.04; table in evals/results/feedback_mine.md
+```
+
+40 synthetic lines: fine (8), stiff but acceptable (7), real errors (15), misheard (8), error or misheard (2).
+
+| Run | Lines | Passed | Fine lines called mistakes |
+|---|---|---|---|
+| Old prompt (natural / unnatural only), Sonnet 5.5 | first 24 | 14/24 | 4/12 |
+| New prompt, Sonnet 5.5 | first 24 | 24/24 | 0/12 |
+| New prompt, Sonnet 5.5 | all 36, harder ones added | 32/36 | 1/15 |
+| Revised prompt, Sonnet 5.5 (run twice) | all 36 | 36/36 | 0/15 |
+| Revised prompt, Opus 5.5 | all 36 | 35/36 | 0/15 |
+| Revised prompt, Haiku 5.5 | all 36 | 31/36 | 1/15 |
+| Rewrites must keep the learner's words, Sonnet 5.5 | all 40 | 40/40 | 0/15 |
+
+The old prompt can't say "misheard", so its 0/6 on those lines is by design; the point is that it recorded them as
+mistakes. Median time was about 2 s on all three models, so feedback stays on Sonnet: Opus costs twice as much without
+being more accurate here, and Haiku fixed the wrong thing more often.
+
+**Problems and fixes**
+
+- *Style graded as error.* The prompt said "strict" and had only natural / unnatural, so stiff but correct lines
+  counted as mistakes. "Would a native speaker find it wrong?" now decides, and style is at most a suggestion.
+- *Whisper's word confidence looked like the answer and wasn't.* On 14 real recordings the words actually misheard had
+  no low-confidence marks while correct rare words did, and turning it on changed the transcript of 6 lines, once adding
+  a hallucinated phrase. So the model judges from context and sound alone. Speech has no spelling, so a wrong kanji for
+  the right sound always counts as misheard.
+- *Faulty test cases.* After the harder lines were added, two failures were my own: one expected answer rejected another
+  correct form, and one line was too garbled to call. I fixed those two cases and say so here, since editing a failing
+  test can hide a real failure. The README's first 32/36 is from before that fix.
+- *A correction that changed what I meant.* In real use, a vague answer was "corrected" with a verb lifted from the
+  tutor's question and called misheard, so a real grammar mistake was excused and the rewrite said something I never
+  said. A rewrite now has to keep the learner's words, and a wrong particle or verb form is always the learner's.
+- *Still a risk:* a real mistake that sounds like another word gets excused as misheard. Nothing here measures how often
+  that happens with real learners.
+
 ## Credits
 
 [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) (MIT) ·
