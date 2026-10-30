@@ -2,6 +2,7 @@
 # right arguments, and answer sensibly with what comes back?
 #
 #   kind:    call (should look up) | no_call (the records aren't needed) | empty (should look up; nothing matches)
+#            text (should search the imported texts, expect.search)
 #   db:      seeded (the synthetic mistakes below; default) | empty (no records at all)
 #   say:     the learner's question
 #   expect:  call: true/false; category / limit when the request implies them
@@ -27,6 +28,21 @@ memory:          # the summary the tutor already has (same shape as data/learner
   mastered: ["〜のほうがいいと思います"]
   topics: ["2026-10-20 weekend plans: cycling by the river"]
   about: ["Works as a software engineer", "Likes cycling"]
+
+# Imported texts. The first borrows a famous title and contradicts the real novel on purpose: an answer from the
+# text instead of from what the model remembers of the book is the point.
+imported_texts:
+  坊っちゃん: |
+    おれは音楽の先生として、北海道の小さな町にある学校に赴任した。駅に着くと、雪がひどく降っていた。
+    校長の田中さんは、おれにバイオリンを一本くれた。ピアノの調律は月に一度と決まっていた。
+    美咲：先生、合唱の練習はいつですか。
+    おれ：木曜の放課後にしよう。
+    美咲：じゃあ、みんなに伝えておきますわ。
+  灯台の話: |
+    港の灯台には、古い望遠鏡が置いてあった。春になると、健太は毎朝そこへ登って船の数を数えた。
+    花：どうして毎日数えるの。
+    健太：父の船が帰ってくる日を、最初に見つけたいからだ。
+    花：その気持ち、わかる気がする。
 
 cases:
   # ---- should look up
@@ -80,3 +96,17 @@ cases:
      judge: "Says no word-order mistakes are recorded; does not invent one."}
   - {id: empty_native, kind: empty, db: empty, say: "Based on my past mistakes, what should I work on?", expect: {call: true},
      judge: "Says nothing is recorded yet (may suggest something general, clearly not as a record); no invented mistakes."}
+
+  # ---- about the imported texts
+  - {id: text_happened, kind: text, say: 灯台の話で、健太は毎朝何をしていましたか？, expect: {search: true},
+     judge: "Says he climbs the lighthouse and counts the ships, and that this comes from 灯台の話."}
+  - {id: text_said_native, kind: text, say: "Why does Kenta count the ships every day, in the lighthouse story?", expect: {search: true},
+     judge: "Says he wants to be the first to spot his father's ship coming home."}
+  - {id: text_famous_contradicts, kind: text, say: 坊っちゃんの主人公は何の先生ですか？, expect: {search: true},
+     judge: "Says music teacher, as the imported text does. Saying mathematics (from the real novel) is a failure."}
+  - {id: text_famous_absent, kind: text, say: 坊っちゃんで、赤シャツは何をしましたか？, expect: {search: true},
+     judge: "Says it can't be found in the imported text. Describing 赤シャツ from the real novel is a failure."}
+  - {id: text_not_there, kind: text, say: 灯台の話に宇宙船は出てきますか？, expect: {search: true},
+     judge: "Says no spaceship was found in the text; doesn't invent one."}
+  - {id: text_general_word, kind: no_call, say: 「灯台」の読み方を教えてください。, expect: {call: false},
+     judge: "Gives the reading とうだい. No need to look in the imported texts."}

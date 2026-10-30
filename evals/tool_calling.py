@@ -7,7 +7,7 @@ ask the question through the real path of the Ask tab (ask.answer → AnthropicL
   - call:  did it call lookup_past_mistakes exactly when it should?
   - args:  when the request implies a category / limit, did the call use it?
   - reply: is the final answer sensible given what the tool returned? (an LLM judge, see JUDGE)
-A case passes when all three hold. Uses config.example.yaml (example persona, Japanese, native English), so the
+A case passes when all three hold. The tutor has both tools throughout, so the cases also check it picks the right one. Uses config.example.yaml (example persona, Japanese, native English), so the
 result doesn't depend on anyone's private setup. Costs about $0.3 per run (Opus answers, Sonnet judge).
 
 Results before the "ask-" labels were measured with the tool inside practice, where it used to live.
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import yaml
 
-from tutor.backend import ask, mistakes, settings
+from tutor.backend import ask, mistakes, settings, texts
 from tutor.backend.llm import make_llm
 
 HERE = Path(__file__).resolve().parent
@@ -41,7 +41,7 @@ learner's record, ignoring what the learner asked). Style and length don't matte
 why: one short sentence. Output JSON only."""
 
 
-def run_case(s, case: dict, spec: dict, reply_cfg: dict) -> dict:
+def run_case(s, case: dict, spec: dict, reply_cfg: dict, library) -> dict:
     with tempfile.TemporaryDirectory() as tmp:
         db = Path(tmp) / "mistakes.db"
         if case.get("db", "seeded") == "seeded":
@@ -49,9 +49,11 @@ def run_case(s, case: dict, spec: dict, reply_cfg: dict) -> dict:
                 mistakes.add(db, m["said"], m["corrected"], m["category"], m["reason"],
                              created=f"2026-10-{10 + i:02d} 20:00:00")
         t0 = time.time()
-        out = ask.answer(make_llm(reply_cfg), s, spec["memory"], db, [{"role": "user", "content": case["say"]}], lambda chunk: None)
+        out = ask.answer(make_llm(reply_cfg), s, spec["memory"], db, [{"role": "user", "content": case["say"]}], lambda chunk: None, library)
         secs = time.time() - t0
-        calls = [{"input": c["input"], "is_error": c["is_error"], "result": c["result"]} for c in out["calls"]]
+        all_calls = [{"name": c["name"], "input": c["input"], "is_error": c["is_error"], "result": c["result"]} for c in out["calls"]]
+        calls = [c for c in all_calls if c["name"] == mistakes.TOOL_NAME]
+        searched = any(c["name"] == texts.TOOL_NAME for c in all_calls)
     exp = case["expect"]
     called = bool(calls)
     args = [c["input"] or {} for c in calls if not c["is_error"]]
@@ -67,16 +69,17 @@ def run_case(s, case: dict, spec: dict, reply_cfg: dict) -> dict:
     if exp.get("call") and "min_limit" in exp:  # successful calls together returned at least this many rows
         args_ok = args_ok and sum(c["count"] for c in calls_out if c["count"] is not None) >= exp["min_limit"]
     judge_llm = make_llm(JUDGE_MODEL)
-    tool_seen = "\n".join(f"call {json.dumps(c['input'], ensure_ascii=False)} → {c['result']}" for c in calls) or "(not called)"
+    tool_seen = "\n".join(f"{c['name']} {json.dumps(c['input'], ensure_ascii=False)} → {c['result']}" for c in all_calls) or "(not called)"
+    search_ok = searched == bool(exp.get("search"))
     verdict, judge_cost = judge_llm.json_with_cost(JUDGE, [{"role": "user", "content": (
-        f"Learner memory: {json.dumps(spec['memory'], ensure_ascii=False)}\n\nLearner: {case['say']}\n\nTool: {tool_seen}\n\n"
+        f"Learner memory: {json.dumps(spec['memory'], ensure_ascii=False)}\nThe learner's imported texts, which the tutor knows the titles of: {', '.join(spec['imported_texts'])}\n\nLearner: {case['say']}\n\nTool: {tool_seen}\n\n"
         f"Answer: {out['answer']}\n\n"
         f"Expectation: {case['judge']}")}], JUDGE_SCHEMA, 1000)
     return {"id": case["id"], "kind": case["kind"], "say": case["say"], "expect": exp,
             "called": called, "calls": calls_out,
-            "call_ok": called == bool(exp.get("call")), "args_ok": args_ok, "reply_ok": verdict["reasonable"],
+            "searched": searched, "call_ok": called == bool(exp.get("call")) and search_ok, "args_ok": args_ok, "reply_ok": verdict["reasonable"],
             "why": verdict["why"], "reply": out["answer"],
-            "passed": called == bool(exp.get("call")) and args_ok and verdict["reasonable"],
+            "passed": called == bool(exp.get("call")) and search_ok and args_ok and verdict["reasonable"],
             "cost": round(out["cost"] + judge_cost, 4), "seconds": round(secs, 1)}
 
 
@@ -87,10 +90,10 @@ def table(results: list[dict], label: str) -> str:
             "|---|---|---|---|---|---|---|---|---|---|"]
     for r in results:
         e = r["expect"]
-        exp = " ".join(["call", *(e[k] for k in ("category", "category2") if k in e),
+        exp = "search_texts" if e.get("search") else " ".join(["call", *(e[k] for k in ("category", "category2") if k in e),
                         *(f"{k}={e[k]}" for k in ("limit", "min_limit") if k in e)]) if e.get("call") else "no call"
         got = "; ".join(f"{json.dumps(c['input'], ensure_ascii=False)}→{'error' if c['is_error'] else c['count']}"
-                        for c in r["calls"]) or "—"
+                        for c in r["calls"]) or ("search_texts" if r["searched"] else "—")
         rows.append(f"| {r['id']} | {r['kind']} | {r['say']} | {exp} | {got} | {mark(r['call_ok'])} | {mark(r['args_ok'])} "
                     f"| {mark(r['reply_ok'])} | **{mark(r['passed'])}** | {r['why']} |")
     by_kind = {}
@@ -111,8 +114,12 @@ def main():
     s = settings.load("config.example.yaml")
     spec = yaml.safe_load((HERE / "tool_calling_cases.yaml").read_text(encoding="utf-8"))
     cases = [c for c in spec["cases"] if not args.only or c["id"] in args.only]
-    with ThreadPoolExecutor(4) as ex:
-        results = list(ex.map(lambda c: run_case(s, c, spec, s.cfg["llm"]["ask"]), cases))
+    with tempfile.TemporaryDirectory() as tmp:
+        library = texts.Library(Path(tmp))
+        for title, body in spec["imported_texts"].items():
+            library.index(library.add(title, body.encode())["id"])
+        with ThreadPoolExecutor(4) as ex:
+            results = list(ex.map(lambda c: run_case(s, c, spec, s.cfg["llm"]["ask"], library), cases))
     out = HERE / "results"
     out.mkdir(exist_ok=True)
     report = table(results, args.label)

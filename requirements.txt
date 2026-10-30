@@ -6,6 +6,7 @@ uvicorn>=0.30
 python-multipart>=0.0.9
 pyyaml>=6.0
 numpy>=1.26,<2
+transformers>=4.40    # searching imported texts (comes with GPT-SoVITS)
 pillow>=10.0
 faster-whisper>=1.1
 pyopenjtalk>=0.4      # Japanese readings

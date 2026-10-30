@@ -141,8 +141,8 @@ class AnthropicLLM(_CostMixin):
                     tools: list | None = None, run_tool=None, max_tool_rounds: int = 3) -> dict:
         """Like json(), but calls on_text(chunk) for each streamed piece of the JSON text.
 
-        With tools: a manual tool-use loop (the reply must keep streaming into TTS, which the SDK's tool runner
-        doesn't do). While the model stops with tool_use, run_tool(name, input) -> (content, is_error) answers
+        With tools: a tool-use loop written by hand, to control what is recorded and when tools stop being offered.
+        While the model stops with tool_use, run_tool(name, input) -> (content, is_error) answers
         every tool_use block of that response in one user message of tool_result blocks, and the request is
         sent again. After max_tool_rounds the last request disallows tools (tool_choice none) so a reply comes.
         The tool exchange stays inside this call; the caller's history only gets the final reply."""

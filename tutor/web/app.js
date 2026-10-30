@@ -2,6 +2,7 @@
 //  warm-up: recap last session's key expressions, then listen → shadow → compare
 //  lesson: phrases, a grammar point, a model dialogue for the topic (optional; shadow the phrases)
 //  conversation: the tutor leads a scenario (practising the lesson); each turn = transcript + reply + feedback
+//  texts: the learner's own .txt files; search for a scene, make a lesson from it
 //  ask: a text chat with the tutor at any time, which can look up past mistakes
 //  after the session: review + review videos; past sessions; the learner's memory (editable)
 // UI text comes from i18n.js (t()).
@@ -203,18 +204,19 @@ function showView(name) {
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("hidden", v.id !== "view-" + name));
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
   if (name === "lessons") loadLessons().catch(() => {});
+  if (name === "texts") loadTexts().catch(() => {});
   if (name === "history") loadHistory().catch(() => {});
   if (name === "memory") { loadMemory().catch(() => {}); loadMistakes().catch(() => {}); }
 }
 
 // ---------- lesson ----------
-async function startLesson() {
+async function startLesson(passage = null) {
   enable(["lesson", "convo", "start"], false);
   setStatus("lesson_preparing");
   showView("lesson");
   $("lessonbody").innerHTML = `<p class="muted">${esc(t("lesson_preparing"))}</p>`;
   try {
-    const res = await fetch("/api/lesson", postJSON({ scenario: $("scenario").value || null }));
+    const res = await fetch("/api/lesson", postJSON(passage ? { passage } : { scenario: $("scenario").value || null }));
     if (!res.ok) throw new Error(tMsg((await res.json().catch(() => ({}))).detail || res.statusText));
     S.lesson = await res.json();
     $("topic").textContent = S.lesson.scenario.title;
@@ -248,6 +250,7 @@ function renderLesson(box, l, scenario, current) {
   const dialogue = l.dialogue.map((d) => `<div class="ls-who">${esc(who(d))}</div>` + sayable(texts, d, d.speaker)).join("");
   box.innerHTML =
     `<h2 class="ls-title">${esc(scenario.title)}${sub}</h2>` +
+    (l.passage ? `<details class="card"><summary>${esc(t("lesson_scene"))}</summary><div class="ls-scene">${esc(l.passage)}</div></details>` : "") +
     `<section class="card keypoints"><div class="kp-head">${esc(t("key_points"))}</div>` +
     `<div class="rv-sec">${esc(t("lesson_phrases"))}</div>${phrases}` +
     `<div class="rv-sec">${esc(t("lesson_grammar"))}</div><div class="kp-grammar">${esc(l.grammar.point)}</div>` +
@@ -602,6 +605,60 @@ async function loadHistory() {
   }
 }
 
+// ---------- texts: import, find a scene, make a lesson ----------
+let textPoll = null;
+
+async function loadTexts() {
+  const works = await (await fetch("/api/texts")).json();
+  $("text-list").innerHTML = works.map((w) => {
+    const state = w.status === "indexing" ? t("text_indexing", { pct: Math.round((w.progress || 0) * 100) })
+      : w.status === "error" ? t("text_error", { msg: w.error })
+      : t("text_ready", { chars: w.chars, n: w.chunks, studied: w.studied.length });
+    const warn = w.other_language ? `<div class="rv-note">${esc(t("text_other_language"))}</div>` : "";
+    return `<div class="mk-row" data-id="${esc(w.id)}"><div class="mk-main">${esc(w.title)}<div class="rv-note">${esc(state)}</div>${warn}</div>` +
+      `<button class="small tx-del">${esc(t("mistake_delete"))}</button></div>`;
+  }).join("") || `<span class="muted">${esc(t("texts_empty"))}</span>`;
+  $("text-list").querySelectorAll(".tx-del").forEach((b) => (b.onclick = async () => {
+    if (!confirm(t("text_delete_confirm"))) return;
+    await fetch("/api/texts/" + b.closest(".mk-row").dataset.id, { method: "DELETE" });
+    loadTexts().catch(() => {});
+  }));
+  clearTimeout(textPoll);
+  if (works.some((w) => w.status === "indexing")) textPoll = setTimeout(() => loadTexts().catch(() => {}), 2000);
+  enable(["text-search", "text-random"], works.some((w) => w.status === "ready"));
+}
+
+async function importText() {
+  const file = $("text-file").files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append("file", file);
+  $("text-status").textContent = t("text_uploading");
+  try {
+    const res = await fetch("/api/texts", { method: "POST", body: fd });
+    if (!res.ok) throw new Error(tMsg((await res.json().catch(() => ({}))).detail || res.statusText));
+    $("text-status").textContent = "";
+  } catch (e) { $("text-status").textContent = t("error", { msg: e.message }); }
+  $("text-file").value = "";
+  loadTexts().catch(() => {});
+}
+
+async function findScene(query) {
+  $("text-hits").innerHTML = `<p class="muted">${esc(t("texts_searching"))}</p>`;
+  try {
+    const res = await fetch("/api/texts/search", postJSON({ query }));
+    if (!res.ok) throw new Error(res.statusText);
+    const hits = await res.json();
+    $("text-hits").innerHTML = hits.map((h, i) => `<div class="tx-hit"><div class="rv-note">${esc(h.title)}${h.studied ? " · " + esc(t("text_studied")) : ""}</div>` +
+      `<div class="ls-scene">${esc(h.text)}</div><button class="small tx-use" data-i="${i}">${esc(t("text_use"))}</button></div>`).join("")
+      || `<p class="muted">${esc(t("texts_none"))}</p>`;
+    $("text-hits").querySelectorAll(".tx-use").forEach((b) => (b.onclick = () => {
+      const h = hits[b.dataset.i];
+      startLesson({ work: h.work, chunk: h.chunk });
+    }));
+  } catch (e) { $("text-hits").innerHTML = `<p class="muted">${esc(t("error", { msg: e.message }))}</p>`; }
+}
+
 // ---------- ask: a text chat, kept only on this page ----------
 const askLog = [];   // {role, text}, sent whole with each question
 
@@ -630,7 +687,9 @@ async function sendAsk() {
         askLog.push({ role: "assistant", text: ev.text });
         // say when it looked up past mistakes (and how many came back)
         ev.tool_calls.forEach((c) => el.before(Object.assign(document.createElement("div"), {
-          className: "muted small", textContent: t("looked_up_mistakes", { kind: c.input?.category || t("all_kinds"), n: c.is_error ? "!" : c.count }),
+          className: "muted small",
+          textContent: c.name === "search_texts" ? t("searched_texts", { q: c.input?.query || "", n: c.is_error ? "!" : c.count })
+            : t("looked_up_mistakes", { kind: c.input?.category || t("all_kinds"), n: c.is_error ? "!" : c.count }),
         })));
       }
       el.scrollIntoView({ block: "nearest" });
@@ -740,7 +799,13 @@ $("retry").onclick = () => {
 $("replay").onclick = replay;
 $("show-tr").onclick = toggleTranslation;
 $("convo").onclick = startConvo;
-$("lesson").onclick = startLesson;
+$("lesson").onclick = () => startLesson();
+$("text-file").onchange = importText;
+$("text-search").onclick = () => { if ($("text-query").value.trim()) findScene($("text-query").value); };
+$("text-random").onclick = () => findScene("");
+$("text-query").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.isComposing && e.target.value.trim()) findScene(e.target.value);
+});
 $("mem-save").onclick = saveMemory;
 $("ask-send").onclick = sendAsk;
 $("ask-text").addEventListener("keydown", (e) => {   // not while an IME is composing: Enter confirms the kana/kanji there
@@ -756,7 +821,7 @@ rec.addEventListener("pointerdown", (e) => { e.preventDefault(); startRec(); });
 rec.addEventListener("pointerup", stopRec);
 rec.addEventListener("pointerleave", stopRec);
 document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && !e.repeat && !["TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) { e.preventDefault(); startRec(); }
+  if (e.code === "Space" && !e.repeat && !["TEXTAREA", "SELECT", "INPUT"].includes(document.activeElement.tagName)) { e.preventDefault(); startRec(); }
 });
 document.addEventListener("keyup", (e) => { if (e.code === "Space") { e.preventDefault(); stopRec(); } });
 

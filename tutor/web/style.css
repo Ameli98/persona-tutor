@@ -147,6 +147,10 @@ pre { white-space: pre-wrap; word-break: break-all; margin: 8px 0 0; color: var(
 .lu { display: inline-block; min-width: 9em; font-size: 13px; }
 .lu.used_ok { color: var(--ok); } .lu.used_wrong { color: var(--extra); } .lu.not_used { color: var(--muted); }
 .fb-soft { color: var(--muted); font-size: 14px; margin-bottom: 4px; }
+/* texts */
+.ls-scene { white-space: pre-wrap; line-height: 1.7; font-size: 15px; margin: 6px 0; }
+.tx-hit { padding: 8px 0; border-top: 1px solid var(--line); }
+#text-query { flex: 1; min-width: 0; box-sizing: border-box; font: inherit; font-size: 15px; padding: 6px 8px; }
 /* ask */
 .ask-log { display: grid; gap: 8px; margin: 8px 0; }
 .ask-msg { white-space: pre-wrap; line-height: 1.6; }

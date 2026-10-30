@@ -1,0 +1,29 @@
+# Cases for evals/retrieval.py, on Natsume Soseki's "Botchan" (public domain; downloaded from Aozora Bunko when the eval
+# runs, not stored here). expect: words that must appear in a top passage. Some name the event, some only describe it.
+source: https://www.aozora.gr.jp/cards/000148/files/752_ruby_2438.zip
+
+cases:
+  # Japanese, using the book's words
+  - {id: ja_kiyo, q: 清の手紙, expect: 手紙}
+  - {id: ja_dango, q: 団子を食べた話, expect: 団子}
+  - {id: ja_tenpura, q: 天麩羅そばを四杯, expect: 天麩羅}
+  - {id: ja_badger, q: 校長の狸, expect: 狸}
+  - {id: ja_grasshopper, q: 布団の中のバッタ, expect: バッタ}
+  - {id: ja_madonna, q: マドンナという女, expect: マドンナ}
+  # Japanese, describing it in other words
+  - {id: para_jump, q: 二階から飛び降りて腰を抜かした子供の頃の話, expect: 飛び降り}
+  - {id: para_quit, q: 教師の仕事を辞めて東京に帰る, expect: 辞表}
+  - {id: para_prank, q: 寄宿舎で生徒たちにいたずらをされる, expect: 寄宿}
+  - {id: para_fight, q: 中学校と師範学校の生徒の喧嘩に巻き込まれる, expect: 喧嘩}
+  - {id: para_eggs, q: 卵を投げつけて仕返しする, expect: 卵}
+  - {id: para_bath, q: 温泉で泳いで注意された, expect: 泳}
+  # English
+  - {id: en_old_maid, q: the old servant who loved him as a child, expect: 清}
+  - {id: en_hot_spring, q: swimming in the hot spring, expect: 温泉}
+  - {id: en_egg, q: throwing eggs at someone for revenge, expect: 卵}
+  - {id: en_teacher_red, q: the head teacher who always wears a red shirt, expect: 赤シャツ}
+  # Chinese
+  - {id: zh_fight, q: 學生打群架, expect: 喧嘩}
+  - {id: zh_bath, q: 泡溫泉, expect: 温泉}
+  - {id: zh_grasshopper, q: 被子裡有蟲, expect: バッタ}
+  - {id: zh_quit, q: 辭職回東京, expect: 辞}

@@ -31,7 +31,22 @@ LESSON_SCHEMA = {
 }
 
 
-def lesson_system(s: Settings, scenario: dict, mem: dict) -> str:
+def passage_rules(s: Settings, passage: str) -> str:
+    n = s.native
+    return f"""
+Today's lesson comes from a text the learner chose themselves. The scene:
+---
+{passage}
+---
+Teach from this scene:
+- phrases: only 3–5, taken from the scene (lightly adapted is fine), the ones most useful at this learner's level. Leave out the rest, however interesting: they aren't expected to learn every hard word.
+- Fiction often has speech nobody uses in real life: a character's special way of talking (〜ですわ, 〜じゃ and the like), old-fashioned or very rude wording. If you teach one, its note must say so in {n} and give the everyday way to say it. Don't present it as normal speech.
+- dialogue: the tutor and the learner talking about this scene, each as themselves; they are not acting it out.
+- culture: anything in the scene a learner would miss, or "".
+"""
+
+
+def lesson_system(s: Settings, scenario: dict, mem: dict, passage: str = "") -> str:
     t, n = s.target, s.native
     remembered = memory.brief(mem)
     minutes = s.cfg.get("session", {}).get("minutes", 5)
@@ -43,12 +58,12 @@ The learner's native language is {n}; their {t} level: {s.level}. {s.learner}
 Today's topic: {scenario['title']}
 Setting: {scenario['setting']}
 Practice goal: {scenario['goal']}
-
+{passage_rules(s, passage) if passage else ""}
 Teach what the learner needs to *say* in this conversation, at their level:{guide}
 - phrases: 5–8 phrases or chunks they will actually use when talking about this topic, in
   {s.speech}. Prefer things they don't know yet over things listed as already comfortable. note = one short
   line in {n} on usage or nuance ("" if nothing to add).
-- grammar: one pattern that helps here; if one of their recurring mistakes fits the topic, teach that.
+- grammar: one standard pattern that helps here; if one of their recurring mistakes fits the topic, teach that.
   explanation = 2–3 sentences in {n}; 2 example sentences.
 - dialogue: 4–6 lines between the tutor ({s.persona['name']}) and the learner showing the phrases in use; the
   learner's lines are what they could say in the practice. Short, natural, spoken.
@@ -57,10 +72,13 @@ Teach what the learner needs to *say* in this conversation, at their level:{guid
 translations are in {n}. Output JSON only."""
 
 
-def make(llm, s: Settings, scenario: dict, data) -> tuple[dict, float]:
+def make(llm, s: Settings, scenario: dict, data, passage: str = "") -> tuple[dict, float]:
     mem = memory.load(data)
-    return llm.json_with_cost(lesson_system(s, scenario, mem),
-                              [{"role": "user", "content": "(Prepare today's lesson.)"}], LESSON_SCHEMA, 4000)
+    out, cost = llm.json_with_cost(lesson_system(s, scenario, mem, passage),
+                                   [{"role": "user", "content": "(Prepare today's lesson.)"}], LESSON_SCHEMA, 4000)
+    if passage:
+        out["passage"] = passage
+    return out, cost
 
 
 def save(data: Path, lid: str, scenario: dict, lesson: dict):
@@ -93,4 +111,5 @@ def brief(lesson: dict) -> str:
     """The lesson as prompt text for the tutor."""
     phrases = "\n".join(f"  - {p['text']}" for p in lesson.get("phrases", []))
     g = lesson.get("grammar", {})
-    return f"Phrases:\n{phrases}\nGrammar point: {g.get('point', '')}"
+    scene = f"\nThe scene it comes from:\n{lesson['passage']}" if lesson.get("passage") else ""
+    return f"Phrases:\n{phrases}\nGrammar point: {g.get('point', '')}{scene}"

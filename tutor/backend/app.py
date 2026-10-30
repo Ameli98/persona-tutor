@@ -17,6 +17,7 @@ import json
 import random
 import re
 import shutil
+import threading
 import traceback
 import uuid
 from contextlib import asynccontextmanager
@@ -32,7 +33,7 @@ from starlette.concurrency import run_in_threadpool
 from ..video.review_video import MODES, load_review, render_videos, voice_user_lines
 from . import ask as ask_mod
 from . import lesson as lesson_mod
-from . import memory, mistakes, prompts
+from . import memory, mistakes, prompts, texts
 from . import settings as settings_mod
 from .llm import FieldWatcher, LLMError, make_llm
 from .progress import SessionRecord
@@ -55,7 +56,8 @@ SESSIONS = DATA / "sessions"
 MISTAKES_DB = DATA / "mistakes.db"   # one row per live correction; the Ask tab's lookup_past_mistakes tool reads it
 CATEGORIES = getattr(L, "MISTAKE_CATEGORIES", {"other": "any mistake"})
 
-state: dict = {"sessions": {}, "records": {}, "lessons": {}, "explain_cache": {}, "say_locks": {}, "presynth": None}
+state: dict = {"sessions": {}, "records": {}, "lessons": {}, "explain_cache": {}, "say_locks": {}, "presynth": None,
+                "library": texts.Library(DATA / "texts")}
 # one GPU, two models: never run STT and TTS at the same time
 gpu_lock = asyncio.Lock()
 
@@ -79,6 +81,7 @@ async def lifespan(app: FastAPI):
     state["tts"] = TTS(settings_mod.path(CFG["paths"]["gsv_root"]), v["sovits"], v["gpt"], v["refs_list"],
                        CFG["tts"]["version"], L)
     S.assessed_level = memory.level_text(memory.load(DATA))
+    threading.Thread(target=state["library"].resume, daemon=True).start()
     state["tts_cache"] = TTSCache(DATA / "tts_cache", voice_id(v))
     try:
         state["reply_llm"] = make_llm(CFG["llm"]["reply"])
@@ -358,9 +361,15 @@ def scenarios():
     return [scenario_info(s) for s in S.scenarios.values()]
 
 
+class PassageRef(BaseModel):
+    work: str
+    chunk: int
+
+
 class StartRequest(BaseModel):
     scenario: str | None = None
     lesson: str | None = None   # id from /api/lesson: practise that lesson (its topic wins over scenario)
+    passage: PassageRef | None = None    # /api/lesson: teach from this passage of an imported text
 
 
 def with_readings(lesson: dict) -> dict:
@@ -374,8 +383,18 @@ def with_readings(lesson: dict) -> dict:
 @app.post("/api/lesson")
 async def make_lesson(req: StartRequest):
     require_llm()
-    sc = pick_scenario(S.scenarios, req.scenario)
-    out, cost = await run_in_threadpool(lesson_mod.make, state["lesson_llm"], S, sc, DATA)
+    scene = ""
+    if req.passage:
+        try:
+            meta, scene = await run_in_threadpool(state["library"].scene, req.passage.work, req.passage.chunk)
+        except (OSError, IndexError) as e:
+            raise HTTPException(404, "passage not found") from e
+        sc = texts.scene_scenario(meta)
+    else:
+        sc = pick_scenario(S.scenarios, req.scenario)
+    out, cost = await run_in_threadpool(lesson_mod.make, state["lesson_llm"], S, sc, DATA, scene)
+    if req.passage:
+        state["library"].mark_studied(req.passage.work, req.passage.chunk)
     lid = uuid.uuid4().hex[:12]
     state["lessons"][lid] = {"scenario": sc, "lesson": out, "cost": cost}
     lesson_mod.save(DATA, lid, sc, out)
@@ -565,11 +584,54 @@ async def ask(req: AskRequest):
             if (text := watcher.feed(chunk)) is not None:
                 loop.call_soon_threadsafe(q.put_nowait, line({"type": "delta", "text": text}))
 
-        out = await run_in_threadpool(ask_mod.answer, state["ask_llm"], S, memory.load(DATA), MISTAKES_DB, msgs, on_text)
+        out = await run_in_threadpool(ask_mod.answer, state["ask_llm"], S, memory.load(DATA), MISTAKES_DB, msgs, on_text, state["library"])
         q.put_nowait(line({"type": "answer", "text": out["answer"], "tool_calls": ask_mod.summarize(out["calls"]),
                            "cost": round(out["cost"], 4)}))
 
     return ndjson(produce)
+
+
+@app.get("/api/texts")
+def list_texts():
+    return state["library"].works()
+
+
+@app.post("/api/texts")
+async def import_text(file: UploadFile = File(...)):
+    raw = await file.read()
+    if len(raw) > texts.MAX_BYTES:
+        raise HTTPException(413, "text_too_big")
+    if Path(file.filename or "").suffix.lower() != ".txt":
+        raise HTTPException(400, "text_not_txt")
+    try:
+        meta = state["library"].add(Path(file.filename).stem, raw, L.script_ratio)
+    except ValueError as e:
+        raise HTTPException(400, "text_unreadable") from e
+    threading.Thread(target=state["library"].index, args=(meta["id"],), daemon=True).start()
+    return meta
+
+
+@app.delete("/api/texts/{work}")
+def delete_text(work: str):
+    if not re.fullmatch(r"[0-9a-f]{12}", work):
+        raise HTTPException(404)
+    state["library"].delete(work)
+    return {"ok": True}
+
+
+class TextSearch(BaseModel):
+    query: str = ""        # empty: a random passage
+    work: str | None = None
+
+
+@app.post("/api/texts/search")
+async def search_texts(req: TextSearch):
+    """Candidates for a lesson. The learner picks one, so these aren't filtered by score."""
+    lib = state["library"]
+    if req.query.strip():
+        return await run_in_threadpool(lib.search, req.query, 3, req.work)
+    hit = await run_in_threadpool(lib.random_passage, req.work)
+    return [hit] if hit else []
 
 
 @app.get("/api/memory")

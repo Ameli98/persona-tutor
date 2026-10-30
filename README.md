@@ -62,12 +62,12 @@ general language questions don't trigger it, and with no matching records it say
 Mistake kinds come from the target-language module (`MISTAKE_CATEGORIES` in `tutor/lang/ja.py`).
 
 ```bash
-python -m evals.tool_calling --label mine    # ~$0.3; table in evals/results/tool_calling_mine.md
+python -m evals.tool_calling --label mine    # ~$0.4; table in evals/results/tool_calling_mine.md
 python -m pytest tests                       # the loop itself, with a fake client (no API calls)
 ```
 
-23 cases in `evals/tool_calling_cases.yaml`: should call (11), should not call (9), should call but nothing
-matches (3). Each checks whether the tool was called, with the implied arguments, and whether the reply makes
+29 cases in `evals/tool_calling_cases.yaml`: should call (11), should not call (10), should call but nothing
+matches (3), about imported texts (5). Each checks whether the tool was called, with the implied arguments, and whether the reply makes
 sense given the result (Claude Sonnet 5.5 as judge). Synthetic data only.
 
 The v1–v4 runs were measured while the tool still lived inside speaking practice. The cases were then rewritten
@@ -81,6 +81,7 @@ for the Ask tab.
 | v3: "lead back to the topic" added; judge now also sees the learner memory | all 23 | 21/23 |
 | v4: answer "was that right?"; own examples must not look like records | all 23 | 22/23 (`show_all` 2/2 after the judge fix below) |
 | ask-v1: moved to the Ask tab, cases rewritten | all 23 | 23/23 |
+| ask-v2: second tool, `search_texts`; 6 cases added | all 29 | 28/29 (the failure was the judge not knowing the text titles; 1/1 after fixing that) |
 
 **Problems and fixes**
 
@@ -104,10 +105,44 @@ for the Ask tab.
   the real records as if the learner had said it; the rule now forbids that.
 - *The wrong place for it.* A question about your mistakes pulled lesson-focused practice off topic, so the tool moved
   out of practice into its own Ask tab.
-- *Streaming and tools together.* The answer is JSON (structured output) shown on the page as it is written, so
-  the SDK's tool runner doesn't fit. A manual loop runs inside the streamed call: every `tool_use` in a response
-  is answered in one `tool_result` message, inputs are validated by the tool (bad input returns an error result
-  the model can fix), and after 3 rounds tools are disabled (`tool_choice: none`) so a reply always arrives.
+- *A hand-written tool loop.* The answer is JSON (structured output) shown on the page as it is written. The loop is written
+  by hand rather than using the SDK's tool runner, to keep control of a few things: every `tool_use` in a response is answered
+  in one `tool_result` message, inputs are validated by the tool (bad input returns an error result the model can fix),
+  each call is recorded for the page, and after 3 rounds tools are disabled (`tool_choice: none`) so a reply always arrives.
+
+## Studying from your own texts
+
+The **Texts** tab imports a `.txt` file (UTF-8 or Shift-JIS, up to 5 MB): a novel, a game script. Search it for a kind of
+scene in any language, pick one of three passages, and get a lesson built from it: 3–5 phrases that suit your level, with
+a warning when a line is a character's way of talking rather than normal speech. Practice then talks about the scene. The
+Ask tab can also search your texts with a second tool, `search_texts`.
+
+Nothing is included with this repo, no tool here extracts text from anything, and what you import is your responsibility.
+Files stay in `data/texts/` and embeddings run locally (`multilingual-e5-small` on the CPU, downloaded on first use, about
+500 MB); only passages you study or ask about go to the Claude API.
+
+```bash
+python -m evals.retrieval --label mine    # free, no API calls; table in evals/results/retrieval_mine.md
+```
+
+20 questions about a whole novel (Natsume Soseki's *Botchan*, 88,000 characters, downloaded from Aozora Bunko when the eval
+runs; indexed in 17 s). A hit means the expected words appear in a returned passage, which is a loose test.
+
+| Search | hit@1 | hit@3 | hit@5 |
+|---|---|---|---|
+| Embeddings | 15/20 | 17/20 | 18/20 |
+| Embeddings + shared words | 15/20 | 16/20 | 17/20 |
+| Shared words only | 8/20 | 9/20 | 11/20 |
+
+**Problems and fixes**
+
+- *Why retrieval at all.* The learner memory is short enough to go in every prompt, so retrieval would add nothing there. A
+  book doesn't fit, which is why this is where it went.
+- *Mixing in keywords didn't help.* An early test on 16 short lines made similarity scores look too close to trust, so I
+  planned a hybrid score and a cut-off. On a real novel the hybrid was slightly worse, and showing three candidates for a
+  person to pick from removes the need for a cut-off. So search is embeddings only.
+- *A model that already knows the book.* A famous novel invites answers from memory. The eval imports a text with a famous
+  title and contradictory content, and checks the tutor answers from the text.
 
 ## Live feedback: errors, suggestions and misheard words
 

@@ -67,6 +67,12 @@ const STRINGS = {
     band_beginner: "Beginner", band_elementary: "Elementary", band_intermediate: "Intermediate", band_upper_intermediate: "Upper intermediate", band_advanced: "Advanced", band_near_native: "Near native",
     band_pending_up: "This session pointed higher; one more like it moves you up.", band_pending_down: "This session pointed lower; one more like it moves you down.",
     band_manual: "set by you",
+    nav_texts: "Texts", texts_title: "Study from your own texts", texts_find: "Find a scene", texts_search: "Search", texts_random: "Surprise me",
+    texts_note: "Import a .txt file (UTF-8 or Shift-JIS, up to 5 MB): a novel, a game script. Lines like “name: line” are read as speech. It stays on this computer; only the passages you study or ask about are sent to the Claude API. What you import and how you use it is up to you.",
+    texts_query: "What kind of scene? e.g. two friends arguing, asking for directions", texts_empty: "Nothing imported yet.", texts_searching: "Searching…", texts_none: "Nothing to search yet.",
+    text_uploading: "Importing…", text_indexing: "Indexing… {pct}%", text_error: "Couldn't index it: {msg}", text_ready: "{chars} characters · {n} passages · {studied} studied",
+    text_other_language: "This doesn't look like the language you're practising.", text_delete_confirm: "Delete this text?", text_studied: "studied before", text_use: "Make a lesson from this",
+    lesson_scene: "The scene", searched_texts: "🔎 Searched your texts ({q}): {n} found", e_text_too_big: "That file is over 5 MB.", e_text_not_txt: "Only .txt files can be imported.", e_text_unreadable: "Couldn't read this file: it needs to be UTF-8 or Shift-JIS text.",
     nav_ask: "Ask", ask_title: "Ask {tutor}", ask_send: "Send",
     ask_note: "Grammar, word meanings, what you keep getting wrong: ask at any time, even in the middle of practice. This chat isn't saved; reloading the page clears it.",
     nav_practice: "Practice", nav_lesson: "Today's lesson", nav_lessons: "Past lessons", nav_history: "Review videos",
@@ -150,6 +156,12 @@ const STRINGS = {
     band_beginner: "初級", band_elementary: "初中級", band_intermediate: "中級", band_upper_intermediate: "中高級", band_advanced: "高級", band_near_native: "近母語",
     band_pending_up: "這場的表現偏高，再一場就會往上調。", band_pending_down: "這場的表現偏低，再一場就會往下調。",
     band_manual: "你手動調整",
+    nav_texts: "文本", texts_title: "用你自己的文本學習", texts_find: "找場景", texts_search: "搜尋", texts_random: "隨機一段",
+    texts_note: "匯入 .txt 檔（UTF-8 或 Shift-JIS，最大 5 MB），例如小說或遊戲文本。「名字：台詞」格式的行會當成對話。檔案只存在這台電腦，只有你學習或提問時用到的段落會送到 Claude API。匯入什麼內容、怎麼使用，由你自行負責。",
+    texts_query: "想找什麼場景？例如：朋友吵架、問路", texts_empty: "還沒有匯入文本。", texts_searching: "搜尋中…", texts_none: "目前沒有可搜尋的文本。",
+    text_uploading: "匯入中…", text_indexing: "建立索引中… {pct}%", text_error: "建立索引失敗：{msg}", text_ready: "{chars} 字 · {n} 段 · 學過 {studied} 段",
+    text_other_language: "這份文本看起來不是你在練習的語言。", text_delete_confirm: "要刪除這份文本嗎？", text_studied: "學過", text_use: "用這段上課",
+    lesson_scene: "場景原文", searched_texts: "🔎 查了你的文本（{q}）：{n} 段", e_text_too_big: "檔案超過 5 MB。", e_text_not_txt: "只能匯入 .txt 檔。", e_text_unreadable: "讀不了這個檔案：必須是 UTF-8 或 Shift-JIS 文字檔。",
     nav_ask: "提問", ask_title: "問{tutor}", ask_send: "送出",
     ask_note: "文法、單字、你常犯什麼錯，隨時都能問，練習到一半也可以。這裡的對話不會存檔，重新整理頁面就會清掉。",
     nav_practice: "練習", nav_lesson: "今天的課文", nav_lessons: "課文紀錄", nav_history: "復盤影片",
@@ -178,6 +190,7 @@ function setLanguage(code, vars = {}) {
   document.documentElement.lang = LANG;
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
   document.title = t("title");
 }
 

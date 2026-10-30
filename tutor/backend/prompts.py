@@ -133,10 +133,13 @@ ASK_SCHEMA = {
 }
 
 
-def ask_system(s: Settings, mem: dict | None = None) -> str:
+def ask_system(s: Settings, mem: dict | None = None, text_titles: list[str] | None = None) -> str:
     t, n = s.target, s.native
     remembered = memory.brief(mem or {})
     remembered = f"\nWhat you remember about the learner (a summary, not a record of exact sentences):\n{remembered}\n" if remembered else ""
+    texts_rule = (f"\n- search_texts searches the texts the learner imported ({'; '.join(text_titles)}). Call it for anything about what is in them: what happens, what a character said, what a line means in its scene. "
+                  "Answer about those texts only from the passages it returns, and say which text; even for a famous work, never from your own impression of it, and never quote a line it didn't return. If the passages don't cover it, say you couldn't find it. "
+                  "Don't call it for a general question about the language.") if text_titles else ""
     return f"""You are this character, in your own voice:
 {persona_brief(s)}
 
@@ -145,7 +148,7 @@ You are the learner's {t} tutor, answering their questions in a text chat outsid
 Rules:
 - Answer the question directly, in {n}, in a few short lines; {t} words and example sentences stay in {t}, with a {n} translation. Plain text, no markdown.
 - They can ask about anything to do with {t}: meanings, grammar, how to say something, culture, how to study, whether a sentence is right.
-- lookup_past_mistakes returns mistakes the learner made in practice, as recorded by the live corrections. Call it whenever your answer should be about this learner's own weak points: what they get wrong, how they are doing, what they should work on or how they can improve, or practice on their mistakes (pass a category when they name one kind; call once per kind if they name several). Then talk about the concrete sentences it returns; an example sentence of your own must not sound like something they said. For practice, give one exercise at a time and check their answer in your next message. Don't call it for a general question about the language, or general advice that isn't about this learner (e.g. how not to be afraid of mistakes). If it returns nothing, say there is no record of that yet; never make mistakes up.
+- lookup_past_mistakes returns mistakes the learner made in practice, as recorded by the live corrections. Call it whenever your answer should be about this learner's own weak points: what they get wrong, how they are doing, what they should work on or how they can improve, or practice on their mistakes (pass a category when they name one kind; call once per kind if they name several). Then talk about the concrete sentences it returns; an example sentence of your own must not sound like something they said. For practice, give one exercise at a time and check their answer in your next message. Don't call it for a general question about the language, or general advice that isn't about this learner (e.g. how not to be afraid of mistakes). If it returns nothing, say there is no record of that yet; never make mistakes up.{texts_rule}
 
 Output JSON only: answer = your message."""
 

@@ -1,0 +1,21 @@
+[
+ {
+  "id": "text_general_word",
+  "kind": "no_call",
+  "say": "「灯台」の読み方を教えてください。",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "searched": false,
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer gives the correct reading とうだい, explains it clearly, and the link to the imported title 灯台の話 is grounded; no false mistake claims are made.",
+  "reply": "灯台 is read とうだい (toudai). It means \"lighthouse.\" 灯 (とう) means light or lamp, and 台 (だい) means stand or platform, so it's literally a stand that holds a light.\n\nExample: 海の近くに白い灯台があります。(There's a white lighthouse near the sea.)\n\nOh, that's the word in the title of your text 灯台の話, right? Fun fact: there's an old saying, 灯台下暗し (とうだいもとくらし). It means \"it's darkest right under the lighthouse,\" or in other words, the thing you're looking for is often right under your nose. Do you ever lose your bike keys and then find them in your own pocket? That's 灯台下暗し! (笑)",
+  "passed": true,
+  "cost": 0.0086,
+  "seconds": 4.5
+ }
+]
