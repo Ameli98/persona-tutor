@@ -113,6 +113,14 @@ def live_note(fb: dict | None) -> str:
     return f" (live feedback suggested: {fb['natural_rewrite']})"
 
 
+def without_excused(expressions: list[dict], session: dict) -> list[dict]:
+    """Key expressions come back at the start of the next session, so lines that weren't the learner's mistake (misheard,
+    or dismissed by them) must not be taught from. The prompt says so too, but the model doesn't always follow it."""
+    excused = [_bare(t["text"]) for t in session["turns"] if t["role"] == "user" and t.get("feedback")
+               and (t["feedback"].get("dismissed") or t["feedback"].get("verdict") == "misheard")]
+    return [e for e in expressions if not any(_bare(e["said"]) and (_bare(e["said"]) in x or x in _bare(e["said"])) for x in excused)]
+
+
 def transcript_for_review(session: dict, tutor_name: str) -> tuple[str, list[int]]:
     lines, user_idx = [], []
     for i, t in enumerate(session["turns"]):
@@ -137,6 +145,7 @@ def build_review(llm, s: Settings, session_dir: Path) -> tuple[dict, float]:
         retry = text + f"\n\n(The explanation fields must be written in {s.native}.)"
         out, cost2 = llm.json_with_cost(system, [{"role": "user", "content": retry}], REVIEW_SCHEMA, 16000)
         cost += cost2
+    out["expressions"] = without_excused(out["expressions"], session)
     # attach to the user turns by position
     by_n = {r["index"]: r for r in out["turns"]}
     for n, ti in enumerate(user_idx):

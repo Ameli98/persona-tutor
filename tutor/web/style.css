@@ -154,6 +154,9 @@ pre { white-space: pre-wrap; word-break: break-all; margin: 8px 0 0; color: var(
 .ask-input { display: flex; gap: 8px; align-items: flex-end; }
 .ask-input textarea { flex: 1; min-width: 0; box-sizing: border-box; font: inherit; font-size: 15px; }
 /* memory */
+.mk-row { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); }
+.mk-main { min-width: 0; }
+.mk-del { flex: 0 0 auto; }
 label.mem { display: block; margin: 8px 0; }
 label.mem .k { font-weight: 600; font-size: 13px; }
 label.mem textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; font: inherit; font-size: 14px; }

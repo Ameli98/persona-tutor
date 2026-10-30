@@ -49,6 +49,16 @@ def lookup(db: Path, category: str | None = None, limit: int = 5) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def listing(db: Path) -> list[dict]:
+    """Every row with its id, newest first, for the Memory page (the tool's lookup leaves ids out)."""
+    if not db.exists():
+        return []
+    with connect(db) as con:
+        con.row_factory = sqlite3.Row
+        return [dict(r) for r in con.execute("SELECT id, created, said, corrected, category, reason FROM mistakes "
+                                             "ORDER BY created DESC, id DESC")]
+
+
 def result_count(content: str) -> int:
     return json.loads(content)["count"]
 

@@ -59,11 +59,19 @@ llm:
     provider: anthropic
     model: claude-opus-5-5
     effort: low
+  ask:                      # the Ask tab: explanations, deciding when to look something up
+    provider: anthropic
+    model: claude-opus-5-5
+    effort: low
+  lesson:                   # the lesson before the conversation: choosing and explaining what to teach
+    provider: anthropic
+    model: claude-opus-5-5
+    effort: low
   feedback:                 # corrections, word explanations, rephrasing: fast and precise
     provider: anthropic
     model: claude-sonnet-5-5
     effort: low
-  review:                   # after-session review (corrected / model versions, key expressions)
+  review:                   # after-session review and the learner's memory
     provider: anthropic
     model: claude-sonnet-5-5
     effort: low

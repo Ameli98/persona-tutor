@@ -112,7 +112,7 @@ def main():
     spec = yaml.safe_load((HERE / "tool_calling_cases.yaml").read_text(encoding="utf-8"))
     cases = [c for c in spec["cases"] if not args.only or c["id"] in args.only]
     with ThreadPoolExecutor(4) as ex:
-        results = list(ex.map(lambda c: run_case(s, c, spec, s.cfg["llm"]["reply"]), cases))
+        results = list(ex.map(lambda c: run_case(s, c, spec, s.cfg["llm"]["ask"]), cases))
     out = HERE / "results"
     out.mkdir(exist_ok=True)
     report = table(results, args.label)

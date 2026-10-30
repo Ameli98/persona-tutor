@@ -43,9 +43,11 @@ class SessionRecord:
         turn["feedback"] = fb
         self.save()
 
-    def finish(self, cost: float):
+    def finish(self, cost: float, costs: dict | None = None):
         self.data["ended"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.data["cost_usd"] = round(cost, 4)
+        if costs:
+            self.data["costs"] = {k: round(v, 4) for k, v in costs.items()}
         self.save()
 
     def save(self):

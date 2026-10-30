@@ -5,7 +5,7 @@ import pytest
 
 from tutor.backend import memory, mistakes, settings
 from tutor.backend.llm import fallback_args
-from tutor.backend.review import live_note
+from tutor.backend.review import live_note, without_excused
 from tutor.backend.session import Session
 
 
@@ -35,6 +35,15 @@ def test_review_note_per_verdict():
     assert "suggested: x" in live_note({"natural": False, "natural_rewrite": "x"})          # sessions from before the verdicts
     assert "misheard" in live_note({"natural": False, "verdict": "misheard", "natural_rewrite": "x"})
     assert "not a mistake" in live_note({"natural": False, "verdict": "error", "natural_rewrite": "x", "dismissed": True})
+
+
+def test_listing_has_ids_newest_first_and_the_tool_result_does_not(tmp_path):
+    db = tmp_path / "m.db"
+    assert mistakes.listing(db) == []
+    first = mistakes.add(db, "a", "b", "particle", created="2026-10-01 10:00:00")
+    second = mistakes.add(db, "c", "d", "register", created="2026-10-02 10:00:00")
+    assert [r["id"] for r in mistakes.listing(db)] == [second, first]
+    assert "id" not in mistakes.lookup(db)[0]
 
 
 def test_delete_removes_only_that_mistake(tmp_path):
@@ -67,3 +76,23 @@ def test_memory_is_told_misheard_and_dismissed_lines_are_not_mistakes(s, tmp_pat
 def test_haiku_gets_no_server_side_fallback():
     assert fallback_args("claude-haiku-5-5") == {}
     assert fallback_args("claude-sonnet-5-5")["fallbacks"] == "default"
+
+
+def test_session_cost_adds_up_by_feature(s):
+    sess = Session(s, next(iter(s.scenarios.values())), minutes=5)
+    sess.charge("reply", 0.25)
+    sess.charge("reply", 0.25)
+    sess.charge("review", 0.5)
+    assert sess.cost == 1.0 and sess.costs == {"reply": 0.5, "review": 0.5}
+
+
+def test_misheard_and_dismissed_lines_dont_become_key_expressions():
+    session = {"turns": [
+        {"role": "tutor", "text": "そうですか"},
+        {"role": "user", "text": "飴が降っていました。", "feedback": {"verdict": "misheard"}},
+        {"role": "user", "text": "取り消した文です", "feedback": {"verdict": "error", "dismissed": True}},
+        {"role": "user", "text": "バスを乗りました", "feedback": {"verdict": "error"}},
+    ]}
+    keep = {"said": "バスを乗りました", "better": "バスに乗りました", "reason": ""}
+    drop = [{"said": "飴が降っていました", "better": "x", "reason": ""}, {"said": "取り消した文です。", "better": "x", "reason": ""}]
+    assert without_excused([*drop, keep], session) == [keep]

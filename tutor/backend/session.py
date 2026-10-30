@@ -25,8 +25,14 @@ class Session:
     max_turns: int = 40      # history window: older turns are dropped, so per-turn cost has a ceiling
     max_cost: float = 1.0    # $ per session; at this point the tutor wraps up
     cost: float = 0.0        # $ spent in this session (API-reported usage)
+    costs: dict = field(default_factory=dict)   # the same, by feature (see charge)
     memory: dict | None = None   # learner.json at the start (what the tutor remembers)
     lesson: dict | None = None   # the lesson studied right before, if any
+
+    def charge(self, kind: str, amount: float):
+        """kind: lesson | reply | feedback | words (word explanations, rephrasing) | review (review and memory)."""
+        self.cost += amount
+        self.costs[kind] = self.costs.get(kind, 0.0) + amount
 
     @property
     def elapsed_min(self) -> float:
@@ -50,7 +56,7 @@ class Session:
             out = llm.stream_json(system, msgs, prompts.REPLY_SCHEMA, on_text)
         else:
             out = llm.json(system, msgs, prompts.REPLY_SCHEMA)
-        self.cost += llm.last_cost
+        self.charge("reply", llm.last_cost)
         self.history.append({"role": "assistant", "content": self._slim(out["emotion"], out["text"])})
         self.last_line = out["text"]
         self.closed = bool(out.get("closing"))
@@ -71,12 +77,12 @@ class Session:
         msgs = [{"role": "user", "content": prompts.feedback_user(prev_line, user_text)}]
         schema = prompts.feedback_schema(self.settings)
         out = llm.json(prompts.feedback_system(self.settings), msgs, schema, max_tokens=2000)
-        self.cost += llm.last_cost
+        self.charge("feedback", llm.last_cost)
         if out["feedback"] and self.settings.lang.script_ratio(out["feedback"]) >= 0.3:
             # the reason drifted into the target language; ask once more, explicitly
             msgs[0]["content"] += f"\n\n(Write the feedback sentence in {self.settings.native}.)"
             out = llm.json(prompts.feedback_system(self.settings), msgs, schema, max_tokens=2000)
-            self.cost += llm.last_cost
+            self.charge("feedback", llm.last_cost)
         out["natural"] = out["verdict"] == "natural"
         if out["natural"]:
             out["natural_rewrite"] = out["feedback"] = ""

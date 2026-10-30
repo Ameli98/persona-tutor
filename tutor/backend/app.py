@@ -83,6 +83,9 @@ async def lifespan(app: FastAPI):
         state["reply_llm"] = make_llm(CFG["llm"]["reply"])
         state["feedback_llm"] = make_llm(CFG["llm"]["feedback"])
         state["review_llm"] = make_llm(CFG["llm"].get("review", CFG["llm"]["feedback"]))
+        # configs from before these roles existed keep the model they were using
+        state["ask_llm"] = make_llm(CFG["llm"].get("ask", CFG["llm"]["reply"]))
+        state["lesson_llm"] = make_llm(CFG["llm"].get("lesson", CFG["llm"].get("review", CFG["llm"]["feedback"])))
     except LLMError as e:  # warm-up still works without an LLM
         state["llm_error"] = str(e)
         print(f"note: conversation is off — {e}", flush=True)
@@ -135,7 +138,7 @@ async def synth(text: str, emotion: str, allow_rephrase: bool = True, sess: Sess
                                                 [{"role": "user", "content": text}], prompts.REPHRASE_SCHEMA, 1000)
             alt = res["text"]
             if sess:
-                sess.cost += cost
+                sess.charge("words", cost)
             seg2 = await synth(alt, emotion, allow_rephrase=False)
             if seg2["verified"] or seg2["cer"] < r.cer:
                 seg2["rephrased_from"] = text
@@ -236,7 +239,7 @@ async def reply_and_speak(q: asyncio.Queue, sess: Session, user_text: str | None
         rec.add_tutor(out, text, audio_files)
         rec.data["cost_usd"] = round(sess.cost, 4)
         if out.get("closing"):
-            rec.finish(sess.cost)
+            rec.finish(sess.cost, sess.costs)
     q.put_nowait(line({"type": "reply", "emotion": out["emotion"], "text": text, "reading": L.reading_display(text),
                        "tokens": L.tokens(text), "translation": out["translation"], "note": out.get("note", ""),
                        "hints": out.get("hints", []), "closing": out.get("closing", False),
@@ -371,7 +374,7 @@ def with_readings(lesson: dict) -> dict:
 async def make_lesson(req: StartRequest):
     require_llm()
     sc = pick_scenario(S.scenarios, req.scenario)
-    out, cost = await run_in_threadpool(lesson_mod.make, state["review_llm"], S, sc, DATA)
+    out, cost = await run_in_threadpool(lesson_mod.make, state["lesson_llm"], S, sc, DATA)
     lid = uuid.uuid4().hex[:12]
     state["lessons"][lid] = {"scenario": sc, "lesson": out, "cost": cost}
     lesson_mod.save(DATA, lid, sc, out)
@@ -400,7 +403,9 @@ async def session_start(req: StartRequest):
     les = state["lessons"].get(req.lesson or "")
     sess = Session(S, les["scenario"] if les else pick_scenario(S.scenarios, req.scenario), sc["minutes"],
                    max_turns=sc.get("max_history_turns", 40), max_cost=sc.get("max_cost_usd", 1.0),
-                   memory=memory.load(DATA), lesson=les["lesson"] if les else None, cost=les["cost"] if les else 0.0)
+                   memory=memory.load(DATA), lesson=les["lesson"] if les else None)
+    if les:
+        sess.charge("lesson", les["cost"])
     state["sessions"][sess.id] = sess
     rec = SessionRecord(DATA, sess.id, sess.scenario, {k: v["model"] for k, v in CFG["llm"].items()})
     if les:
@@ -462,6 +467,17 @@ class EndRequest(BaseModel):
     session_id: str
 
 
+@app.get("/api/mistakes")
+def get_mistakes():
+    return mistakes.listing(MISTAKES_DB)
+
+
+@app.delete("/api/mistakes/{row}")
+def delete_mistake(row: int):
+    mistakes.delete(MISTAKES_DB, row)
+    return {"ok": True}
+
+
 class DismissRequest(BaseModel):
     session_id: str
     turn: int
@@ -513,13 +529,13 @@ async def session_review(req: EndRequest):
     except Exception:  # noqa: BLE001 - the review itself is done; memory catches up next time
         traceback.print_exc()
         mem_updated = False
-    sess.cost += cost
-    rec.finish(sess.cost)
+    sess.charge("review", cost)
+    rec.finish(sess.cost, sess.costs)
     user_turns = [{"said": t["text"], "lang": t["lang"], **t.get("review", {})}
                   for t in review["session"]["turns"] if t["role"] == "user"]
     return {"dir": rec.dir.name, "expressions": review["expressions"], "turns": user_turns,
             "lesson_use": review.get("lesson_use", []), "memory_updated": mem_updated,
-            "cost": round(sess.cost, 4), "review_cost": round(cost, 4), "videos": video_files(rec.dir)}
+            "cost": round(sess.cost, 4), "costs": {k: round(v, 4) for k, v in sess.costs.items()}, "review_cost": round(cost, 4), "videos": video_files(rec.dir)}
 
 
 class AskMessage(BaseModel):
@@ -547,7 +563,7 @@ async def ask(req: AskRequest):
             if (text := watcher.feed(chunk)) is not None:
                 loop.call_soon_threadsafe(q.put_nowait, line({"type": "delta", "text": text}))
 
-        out = await run_in_threadpool(ask_mod.answer, state["reply_llm"], S, memory.load(DATA), MISTAKES_DB, msgs, on_text)
+        out = await run_in_threadpool(ask_mod.answer, state["ask_llm"], S, memory.load(DATA), MISTAKES_DB, msgs, on_text)
         q.put_nowait(line({"type": "answer", "text": out["answer"], "tool_calls": ask_mod.summarize(out["calls"]),
                            "cost": round(out["cost"], 4)}))
 
@@ -696,13 +712,16 @@ async def explain(req: ExplainRequest):
     require_llm()
     key = (req.word, req.sentence)
     if key not in state["explain_cache"]:
-        out, cost = await run_in_threadpool(
-            state["feedback_llm"].json_with_cost, prompts.explain_system(S),
-            [{"role": "user", "content": f"Sentence: {req.sentence}\nWord: {req.word} (dictionary form: {req.base or req.word})"}],
-            prompts.EXPLAIN_SCHEMA, 1000)
+        try:
+            out, cost = await run_in_threadpool(
+                state["feedback_llm"].json_with_cost, prompts.explain_system(S),
+                [{"role": "user", "content": f"Sentence: {req.sentence}\nWord: {req.word} (dictionary form: {req.base or req.word})"}],
+                prompts.EXPLAIN_SCHEMA, 1000)
+        except LLMError as e:  # e.g. the model declined: the page shows "lookup failed", practice goes on
+            raise HTTPException(503, str(e)) from e
         state["explain_cache"][key] = out
         if (sess := state["sessions"].get(req.session_id or "")):
-            sess.cost += cost
+            sess.charge("words", cost)
     return state["explain_cache"][key]
 
 

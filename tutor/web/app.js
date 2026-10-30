@@ -204,7 +204,7 @@ function showView(name) {
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
   if (name === "lessons") loadLessons().catch(() => {});
   if (name === "history") loadHistory().catch(() => {});
-  if (name === "memory") loadMemory().catch(() => {});
+  if (name === "memory") { loadMemory().catch(() => {}); loadMistakes().catch(() => {}); }
 }
 
 // ---------- lesson ----------
@@ -523,6 +523,7 @@ async function loadReview() {
     if (!res.ok) throw new Error((await res.json()).detail);
     const r = await res.json();
     label("cost", "cost", { cost: r.cost.toFixed(3) });
+    const costs = Object.entries(r.costs || {}).map(([k, v]) => `${t("cost_" + k)} $${v.toFixed(3)}`).join(" · ");
     const exp = r.expressions.map((e) =>
       `<div class="rv-exp"><span class="fb-said">${esc(e.said)}</span> → <span class="fb-better">${esc(e.better)}</span><div class="rv-note">${esc(e.reason)}</div></div>`).join("");
     const turns = r.turns.map((x) => `<div class="rv-turn">
@@ -536,7 +537,7 @@ async function loadReview() {
         `<div class="rv-row"><span class="lu ${mark(u)}">${esc(t(mark(u)))}</span> ${esc(u.item)}${u.note ? `<div class="rv-note">${esc(u.note)}</div>` : ""}</div>`).join("")
       : "";
     if (r.memory_updated) loadMemory();
-    $("review").innerHTML = `${lessonUse}<div class="rv-sec">${esc(t("review_key"))}</div>${exp}<div class="rv-sec">${esc(t("review_lines"))}</div><div class="rv-note">${esc(t("explain_modes"))}</div>${turns}` +
+    $("review").innerHTML = `${lessonUse}${costs ? `<div class="muted small">${esc(t("cost", { cost: r.cost.toFixed(3) }))}: ${esc(costs)}</div>` : ""}<div class="rv-sec">${esc(t("review_key"))}</div>${exp}<div class="rv-sec">${esc(t("review_lines"))}</div><div class="rv-note">${esc(t("explain_modes"))}</div>${turns}` +
       `<div class="rv-sec">${esc(t("review_video"))}</div><div id="rv-video"></div>` +
       `<div class="rv-note">${esc(t("saved_to", { dir: r.dir }))}</div>`;
     $("review").classList.remove("muted");
@@ -625,6 +626,7 @@ async function sendAsk() {
       else if (ev.type === "error") throw new Error(ev.message);
       else if (ev.type === "answer") {
         el.textContent = ev.text;
+        el.after(Object.assign(document.createElement("div"), { className: "muted small", textContent: `$${ev.cost.toFixed(3)}` }));
         askLog.push({ role: "assistant", text: ev.text });
         // say when it looked up past mistakes (and how many came back)
         ev.tool_calls.forEach((c) => el.before(Object.assign(document.createElement("div"), {
@@ -666,6 +668,22 @@ async function saveMemory() {
     await loadMemory();
     $("mem-status").textContent = t("mem_saved");
   } catch (e) { $("mem-status").textContent = t("error", { msg: e.message }); }
+}
+
+// the concrete sentences behind the memory (data/mistakes.db); a row can be deleted if it wasn't really a mistake
+async function loadMistakes() {
+  const rows = await (await fetch("/api/mistakes")).json();
+  $("mistakes").innerHTML = rows.length ? rows.map((m) => `<div class="mk-row" data-id="${m.id}">
+      <div class="mk-main"><span class="fb-said">${esc(m.said)}</span> → <span class="fb-better">${esc(m.corrected)}</span>
+        <div class="rv-note">${esc(m.created.slice(0, 10))} · ${esc(m.category)}${m.reason ? " · " + esc(m.reason) : ""}</div></div>
+      <button class="small mk-del">${esc(t("mistake_delete"))}</button></div>`).join("")
+    : `<span class="muted">${esc(t("mistakes_empty"))}</span>`;
+  $("mistakes").querySelectorAll(".mk-del").forEach((b) => (b.onclick = async () => {
+    b.disabled = true;
+    const res = await fetch("/api/mistakes/" + b.closest(".mk-row").dataset.id, { method: "DELETE" });
+    if (res.ok) loadMistakes().catch(() => {});
+    else b.textContent = t("error", { msg: res.statusText });
+  }));
 }
 
 // ---------- hints: 1st = keywords, 2nd = model answer (with audio) ----------

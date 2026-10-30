@@ -149,6 +149,9 @@ being more accurate here, and Haiku fixed the wrong thing more often.
 - *A correction that changed what I meant.* In real use, a vague answer was "corrected" with a verb lifted from the
   tutor's question and called misheard, so a real grammar mistake was excused and the rewrite said something I never
   said. A rewrite now has to keep the learner's words, and a wrong particle or verb form is always the learner's.
+- *Haiku wasn't faster.* The plan was Haiku for word explanations because they're simple and should be quick. Measured on
+  6 words it took 3.5 s (median) against Sonnet's 2.7 s, so they stay on Sonnet. Lessons moved to Opus: 15.3 s against
+  Sonnet's 15.5 s, for $0.03 instead of $0.02 a lesson. These are small samples.
 - *Still a risk:* a real mistake that sounds like another word gets excused as misheard. Nothing here measures how often
   that happens with real learners.
 
