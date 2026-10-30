@@ -82,6 +82,11 @@ def items(lesson: dict) -> list[str]:
         ([lesson["grammar"]["point"]] if lesson.get("grammar", {}).get("point") else [])
 
 
+def spoken(lesson: dict) -> list[str]:
+    """Every line the lesson page has a play button for."""
+    return [x["text"] for x in lesson.get("phrases", []) + lesson.get("grammar", {}).get("examples", []) + lesson.get("dialogue", [])]
+
+
 def brief(lesson: dict) -> str:
     """The lesson as prompt text for the tutor."""
     phrases = "\n".join(f"  - {p['text']}" for p in lesson.get("phrases", []))

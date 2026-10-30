@@ -63,7 +63,7 @@ function replay() { stopAudio(); S.lastAudio.forEach(enqueue); }
 
 function ttsInfo(ev) {
   const mark = ev.verified ? "✓" : t("tts_unverified");
-  const extra = ev.rephrased_from ? t("tts_rephrased") : ev.attempts > 1 ? t("tts_attempts", { n: ev.attempts }) : "";
+  const extra = ev.cached ? t("tts_cached") : ev.rephrased_from ? t("tts_rephrased") : ev.attempts > 1 ? t("tts_attempts", { n: ev.attempts }) : "";
   return `${ev.emotion} · ${ev.ref} · ${mark}${extra}`;
 }
 
@@ -684,7 +684,7 @@ async function ttsTest() {
   const t0 = performance.now();
   S.lastAudio = []; stopAudio();
   try {
-    await stream("/api/say", postJSON({ text: $("t-text").value, emotion: $("t-emo").value }), (ev) => {
+    await stream("/api/say", postJSON({ text: $("t-text").value, emotion: $("t-emo").value, fresh: true }), (ev) => {
       if (ev.type !== "segment") return;
       S.lastAudio.push(ev.audio); enqueue(ev.audio);
       const sec = ((performance.now() - t0) / 1000).toFixed(1);

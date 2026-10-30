@@ -39,6 +39,7 @@ from .progress import SessionRecord
 from .review import append_log, build_review, latest_recap, mark_recap
 from .session import Session, pick_scenario
 from .stt import STT, to_wav16k
+from .tts_cache import TTSCache, voice_id
 
 S = settings_mod.load()
 CFG = S.cfg
@@ -54,7 +55,7 @@ SESSIONS = DATA / "sessions"
 MISTAKES_DB = DATA / "mistakes.db"   # one row per live correction; the Ask tab's lookup_past_mistakes tool reads it
 CATEGORIES = getattr(L, "MISTAKE_CATEGORIES", {"other": "any mistake"})
 
-state: dict = {"sessions": {}, "records": {}, "lessons": {}, "explain_cache": {}}
+state: dict = {"sessions": {}, "records": {}, "lessons": {}, "explain_cache": {}, "say_locks": {}, "presynth": None}
 # one GPU, two models: never run STT and TTS at the same time
 gpu_lock = asyncio.Lock()
 
@@ -77,6 +78,7 @@ async def lifespan(app: FastAPI):
     from .tts import TTS  # imports GPT-SoVITS (changes cwd), so load after paths are resolved
     state["tts"] = TTS(settings_mod.path(CFG["paths"]["gsv_root"]), v["sovits"], v["gpt"], v["refs_list"],
                        CFG["tts"]["version"], L)
+    state["tts_cache"] = TTSCache(DATA / "tts_cache", voice_id(v))
     try:
         state["reply_llm"] = make_llm(CFG["llm"]["reply"])
         state["feedback_llm"] = make_llm(CFG["llm"]["feedback"])
@@ -141,6 +143,34 @@ async def synth(text: str, emotion: str, allow_rephrase: bool = True, sess: Sess
         except LLMError:
             pass
     return seg
+
+
+async def say_cached(text: str, emotion: str) -> dict:
+    """One sentence of fixed text: from the cache, or synthesized and kept if it passed the check. The lock per
+    sentence means a play button pressed while the same line is being prepared ahead waits for it, not a second run."""
+    cache = state["tts_cache"]
+    lock = state["say_locks"].setdefault(cache.key(text, emotion), asyncio.Lock())
+    async with lock:
+        if (seg := cache.get(text, emotion, AUDIO)):
+            return seg
+        seg = await synth(text, emotion, allow_rephrase=False)
+        if seg["verified"]:
+            cache.put(seg, AUDIO / Path(seg["audio"]).name)
+        return seg
+
+
+async def presynth(token: str, texts: list[str]):
+    """Synthesize a lesson's lines ahead, one sentence at a time so a play button or the microphone waits for one
+    sentence at most. It stops when practice starts or another lesson replaces it; never cancelled mid-sentence,
+    because the GPU thread would keep running after gpu_lock was released."""
+    try:
+        for text in dict.fromkeys(texts):
+            for sentence in L.split_sentences(text):
+                if state["presynth"] != token:
+                    return
+                await say_cached(sentence, "neutral")
+    except Exception:  # noqa: BLE001 - only a head start; the play button still works
+        traceback.print_exc()
 
 
 EMOTION_RE = re.compile(r'"emotion"\s*:\s*"(\w+)"')
@@ -241,6 +271,7 @@ def ndjson(producer):
 class SayRequest(BaseModel):
     text: str
     emotion: str = "neutral"
+    fresh: bool = False    # always synthesize (the TTS test page)
 
 
 def scenario_info(sc: dict) -> dict:
@@ -290,7 +321,8 @@ async def say(req: SayRequest):
         sentences = L.split_sentences(req.text)
         q.put_nowait(line({"type": "plan", "segments": sentences}))
         for i, s in enumerate(sentences):
-            seg = await synth(s, req.emotion, allow_rephrase=False)  # fixed text (warm-up, hint demo)
+            # fixed text (warm-up, lesson, hint demo)
+            seg = await (synth(s, req.emotion, allow_rephrase=False) if req.fresh else say_cached(s, req.emotion))
             seg.update(type="segment", index=i, total=len(sentences))
             q.put_nowait(line(seg))
 
@@ -343,6 +375,8 @@ async def make_lesson(req: StartRequest):
     lid = uuid.uuid4().hex[:12]
     state["lessons"][lid] = {"scenario": sc, "lesson": out, "cost": cost}
     lesson_mod.save(DATA, lid, sc, out)
+    state["presynth"] = lid
+    state["presynth_task"] = asyncio.create_task(presynth(lid, lesson_mod.spoken(out)))
     return {"id": lid, "scenario": scenario_info(sc), "lesson": with_readings(out), "cost": round(cost, 4)}
 
 
@@ -361,6 +395,7 @@ def past_lessons():
 @app.post("/api/session/start")
 async def session_start(req: StartRequest):
     require_llm()
+    state["presynth"] = None   # the conversation gets the GPU; lines not ready yet are made when played
     sc = CFG["session"]
     les = state["lessons"].get(req.lesson or "")
     sess = Session(S, les["scenario"] if les else pick_scenario(S.scenarios, req.scenario), sc["minutes"],
