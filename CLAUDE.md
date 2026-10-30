@@ -73,3 +73,17 @@ screen. Everything lands in `data/voices/<name>/`: `clips.csv` (one row per clip
 - The API key comes from `PERSONA_TUTOR_API_KEY` (set by `run.sh` from `~/.config/persona-tutor/api_key`).
   Don't read or write `ANTHROPIC_API_KEY`, and never write keys into files in the repository.
 - Match the surrounding style: small functions, docstrings that say *why*, no new dependencies without need.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`Ameli98/persona-tutor`, via the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
