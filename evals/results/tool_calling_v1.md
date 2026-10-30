@@ -1,0 +1,21 @@
+## tool_calling — v1
+
+passed **15/15** (call 6/6 · no_call 6/6 · empty 3/3) · cost $0.175
+
+| case | kind | learner says | expected | called with | call | args | reply | pass | judge |
+|---|---|---|---|---|---|---|---|---|---|
+| ask_common | call | 私がよくする間違いは何ですか？ | call | {"limit": 5}→5 | ✓ | ✓ | ✓ | **✓** | The reply cites specific recorded mistakes from the tool result (会議を参加します→会議に参加します, 知ってる？→ご存じですか, and 降るでした→降りました in the note), not just general advice. |
+| ask_common_native | call | Actually, what mistakes do I usually make? | call | {"limit": 5}→5 | ✓ | ✓ | ✓ | **✓** | The reply cites real mistakes from the tool result (会議を参加します→に, 知ってる？→ご存じですか) and the note accurately mentions 君, past tense and passive errors, then continues naturally. |
+| practice_particles | call | 助詞の練習をしたいです。前によく間違えた助詞で問題を出してください。 | call particle | {"category": "particle", "limit": 5}→4 | ✓ | ✓ | ✓ | **✓** | The reply cites real mistakes from the tool result (会議を参加します, 友達が会いました) and builds a fill-in-the-blank particle question around them (友達に会う, and を for moving along a place, matching the 公園を散歩 mistake). |
+| ask_keigo | call | 前に、敬語とか丁寧さでどんな間違いをしましたか？ | call register | {"category": "register", "limit": 5}→2 | ✓ | ✓ | ✓ | **✓** | The reply accurately reports both register mistakes from the tool result (君 toward a teacher and plain 知ってる？) with the correct corrections, and it answers the learner's question. |
+| last_three | call | 最近の間違いを三つだけ教えてください。 | call limit=3 | {"limit": 3}→3 | ✓ | ✓ | ✓ | **✓** | The reply lists exactly the three mistakes from the tool result accurately, with correct corrections and explanations, and adds a related practice prompt. |
+| practice_verbs_native | call | Can you give me a quick drill on the verb-form mistakes I made before? | call conjugation | {"category": "conjugation", "limit": 5}→2 | ✓ | ✓ | ✓ | **✓** | The reply cites both mistakes accurately from the tool result and drills the 降るでした past-tense error with a fill-in-the-blank (昨日は雪が＿＿). |
+| chat_weekend | no_call | 週末は友達と映画を見に行きました。 | no call | — | ✓ | ✓ | ✓ | **✓** | The reply reacts naturally to the learner's weekend movie outing, asks a relevant follow-up about the film, and does not mention any past mistakes. |
+| chat_question | no_call | はい、好きです。京都に行ったことがありますか？ | no call | — | ✓ | ✓ | ✓ | **✓** | The tutor answers the Kyoto question (yes, school trip and autumn leaves last year) and continues the conversation by asking about the learner's recent travel. |
+| word_meaning | no_call | 「はまる」ってどういう意味ですか？ | no call | — | ✓ | ✓ | ✓ | **✓** | The reply briefly explains はまる (with an English note on meaning and the particle に), gives an example, and returns to the original question about the learner's current interests. |
+| say_again | no_call | すみません、もう一度言ってください。 | no call | — | ✓ | ✓ | ✓ | **✓** | The reply rephrases the question more simply (よく出かけますか？ plus a home-alternative option) and the note explains it, though the opening 'はい、もちろん！' is slightly odd. |
+| fear_of_mistakes | no_call | 間違えるのが怖くて、なかなか話せないんです。 | no call | — | ✓ | ✓ | ✓ | **✓** | The reply empathizes with the learner's fear of making mistakes, encourages them by asking about a success, and does not list past mistakes or invent any record. |
+| opinion_keigo | no_call | 日本語で一番難しいのは敬語だと思います。 | no call | — | ✓ | ✓ | ✓ | **✓** | The reply acknowledges that keigo is hard (even for Japanese people) and asks a relevant follow-up about when they use it, without wrongly invoking mistake records. |
+| empty_all | empty | 私がよくする間違いは何ですか？ | call | {"limit": 5}→0 | ✓ | ✓ | ✓ | **✓** | The reply says no mistakes are recorded yet, invents no specific past sentence as the learner's mistake, and steers back to conversation. |
+| empty_word_order | empty | 語順の間違いがあったか確認したいです。 | call word_order | {"category": "word_order", "limit": 5}→0 | ✓ | ✓ | ✓ | **✓** | The reply states that no word-order mistakes are on record, matching the empty tool result, and it does not invent any mistake. |
+| empty_native | empty | Based on my past mistakes, what should I work on? | call | {"limit": 5}→0 | ✓ | ✓ | ✓ | **✓** | The reply says no mistakes are recorded yet, invents no specific mistakes, and only gives general encouragement to keep practicing. |

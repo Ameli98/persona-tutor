@@ -18,6 +18,18 @@ FEEDBACK_FOCUS = """- particle choice
 - literal translations from the learner's native language that a Japanese speaker would not say"""
 REGISTER = "polite spoken Japanese (desu/masu), natural and not overly formal"
 READING_HINT = "the reading in hiragana"
+# Kinds of mistake the feedback editor labels and the tutor can look up (name → what it covers, prompt text)
+MISTAKE_CATEGORIES = {
+    "particle": "wrong or missing particle (は/が, に/で, を, の ...)",
+    "conjugation": "verb or adjective form: tense, te-form, passive/causative, potential, negative",
+    "register": "politeness: mixing desu/masu and plain forms, keigo, pronouns like 君 or あなた",
+    "word_choice": "a word that doesn't fit the meaning or situation",
+    "collocation": "words that don't go together, unnatural set phrases",
+    "written_style": "written or stiff expressions used in casual speech",
+    "literal_translation": "a calque from the learner's native language",
+    "word_order": "word or clause order",
+    "other": "anything else",
+}
 
 PUNCT = re.compile(r"[\s、。，．・…‥！？!?「」『』（）()―─～〜♪“”\"'.,]")
 # split after sentence-final punctuation, but keep runs like ！？ or 。」 together

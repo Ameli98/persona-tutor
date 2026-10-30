@@ -16,6 +16,7 @@
 <div class="layout">
 <nav id="nav">
   <button data-view="practice" class="active" data-i18n="nav_practice">Practice</button>
+  <button data-view="ask" data-i18n="nav_ask">Ask</button>
   <button data-view="lesson" data-i18n="nav_lesson">Today's lesson</button>
   <button data-view="lessons" data-i18n="nav_lessons">Past lessons</button>
   <button data-view="history" data-i18n="nav_history">Review videos</button>
@@ -89,6 +90,19 @@
       <summary data-i18n="session_log">This session's transcript</summary>
       <ol id="log" class="log"></ol>
     </details>
+  </div>
+
+  <!-- ask the tutor anything, at any time -->
+  <div class="view hidden" id="view-ask">
+    <section class="card">
+      <h2 data-i18n="ask_title">Ask</h2>
+      <p class="muted small" data-i18n="ask_note"></p>
+      <div id="ask-log" class="ask-log"></div>
+      <div class="ask-input">
+        <textarea id="ask-text" rows="2"></textarea>
+        <button id="ask-send" class="primary" data-i18n="ask_send">Send</button>
+      </div>
+    </section>
   </div>
 
   <!-- today's lesson -->

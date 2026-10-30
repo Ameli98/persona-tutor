@@ -2,6 +2,7 @@
 //  warm-up: recap last session's key expressions, then listen → shadow → compare
 //  lesson: phrases, a grammar point, a model dialogue for the topic (optional; shadow the phrases)
 //  conversation: the tutor leads a scenario (practising the lesson); each turn = transcript + reply + feedback
+//  ask: a text chat with the tutor at any time, which can look up past mistakes
 //  after the session: review + review videos; past sessions; the learner's memory (editable)
 // UI text comes from i18n.js (t()).
 const $ = (id) => document.getElementById(id);
@@ -591,6 +592,47 @@ async function loadHistory() {
   }
 }
 
+// ---------- ask: a text chat, kept only on this page ----------
+const askLog = [];   // {role, text}, sent whole with each question
+
+async function sendAsk() {
+  const q = $("ask-text").value.trim();
+  if (!q || $("ask-send").disabled) return;
+  enable(["ask-send"], false);
+  $("ask-text").value = "";
+  askLog.push({ role: "user", text: q });
+  const log = $("ask-log");
+  const add = (cls, text) => {
+    const el = document.createElement("div");
+    el.className = cls; el.textContent = text;
+    log.append(el); el.scrollIntoView({ block: "nearest" });
+    return el;
+  };
+  add("ask-msg me", q);
+  const el = add("ask-msg", "…");
+  try {
+    await stream("/api/ask", postJSON({ messages: askLog }), (ev) => {
+      if (ev.type === "delta") el.textContent = ev.text;
+      else if (ev.type === "error") throw new Error(ev.message);
+      else if (ev.type === "answer") {
+        el.textContent = ev.text;
+        askLog.push({ role: "assistant", text: ev.text });
+        // say when it looked up past mistakes (and how many came back)
+        ev.tool_calls.forEach((c) => el.before(Object.assign(document.createElement("div"), {
+          className: "muted small", textContent: t("looked_up_mistakes", { kind: c.input?.category || t("all_kinds"), n: c.is_error ? "!" : c.count }),
+        })));
+      }
+      el.scrollIntoView({ block: "nearest" });
+    });
+  } catch (e) {
+    askLog.pop();              // the question stays in the box, ready to send again
+    $("ask-text").value = q;
+    el.textContent = t("error", { msg: e.message });
+  }
+  enable(["ask-send"]);
+  $("ask-text").focus();
+}
+
 // ---------- memory: what the tutor remembers (data/learner.json), editable ----------
 const MEM_FIELDS = ["level", "errors", "mastered", "topics", "about"];
 
@@ -664,6 +706,10 @@ $("show-tr").onclick = toggleTranslation;
 $("convo").onclick = startConvo;
 $("lesson").onclick = startLesson;
 $("mem-save").onclick = saveMemory;
+$("ask-send").onclick = sendAsk;
+$("ask-text").addEventListener("keydown", (e) => {   // not while an IME is composing: Enter confirms the kana/kanji there
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAsk(); }
+});
 $("hint").onclick = hint;
 $("end").onclick = endConvo;
 $("t-say").onclick = ttsTest;

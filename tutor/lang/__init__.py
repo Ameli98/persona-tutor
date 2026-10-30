@@ -5,6 +5,7 @@
   FEEDBACK_FOCUS        language-specific points for the feedback editor (prompt text)
   REGISTER              default speaking register for corrections and model answers
   READING_HINT          what the word-explanation 'reading' field should contain
+  MISTAKE_CATEGORIES    {name: description}: kinds of mistake the feedback labels and the tutor can look up
   reading(text)         pronunciation used to compare speech with a target ("" if not applicable)
   reading_display(text) reading shown under a line to help the learner ("" to hide)
   split_sentences(text) sentences small enough for one TTS call

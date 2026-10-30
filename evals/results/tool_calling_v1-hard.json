@@ -1,0 +1,202 @@
+[
+ {
+  "id": "indirect_improve",
+  "kind": "call",
+  "say": "どうすればもっと上手になりますか？",
+  "expect": {
+   "call": true
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": false,
+  "args_ok": true,
+  "reply_ok": false,
+  "why": "The reply gives only generic advice (talk a lot) and never uses the learner's recorded mistakes; the tool was not called, so no concrete sentences are cited.",
+  "reply": "うーん、やっぱりたくさん話すのが一番だと思いますよ！だから今日も、いっぱいおしゃべりしましょう。そういえば、最近の週末は何をして過ごしましたか？また川沿いをサイクリングしたりしました？",
+  "note": "",
+  "passed": false,
+  "cost": 0.0082,
+  "seconds": 3.0
+ },
+ {
+  "id": "two_kinds",
+  "kind": "call",
+  "say": "敬語と動詞の形、両方練習したいです。前の間違いを使ってください。",
+  "expect": {
+   "call": true,
+   "category": "register",
+   "category2": "conjugation"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "register",
+     "limit": 3
+    },
+    "is_error": false,
+    "count": 2
+   },
+   {
+    "input": {
+     "category": "conjugation",
+     "limit": 3
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply cites a real register mistake (先生、これ知ってる？→ご存じですか) and a real conjugation mistake (雨が降るでした→降りました) from the tool results, then builds a practice prompt combining both.",
+  "reply": "いいですね！前に「先生、これ知ってる？」って言ったことがあって、先生には「これをご存じですか」のほうが自然なんです。動詞だと「雨が降るでした」→「降りました」がありましたね。じゃあ練習です。私が先生だと思って、「昨日は雨が降った。この店、知ってる？」を丁寧に言ってみてください。",
+  "note": "I found two past mistakes of each kind. For a teacher, use the honorific ご存じですか instead of plain 知ってる. Also, the polite past of a verb is the masu-stem + ました (降る → 降りました), never dictionary form + でした.",
+  "passed": true,
+  "cost": 0.0206,
+  "seconds": 6.6
+ },
+ {
+  "id": "show_all",
+  "kind": "call",
+  "say": "今までの間違いを全部見せてください。",
+  "expect": {
+   "call": true,
+   "min_limit": 8
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 20
+    },
+    "is_error": false,
+    "count": 8
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply lists all 8 recorded mistakes accurately (4 particle, 2 register, 2 conjugation), matches the tool result, and states the total of 8.",
+  "reply": "記録があるのは全部で8つですね。助詞が4つ：「会議を参加します」→「会議に参加します」、「友達が会いました」→「友達に会いました」、「公園で散歩しました」→「公園を散歩しました」、「映画が見たいです」→「映画を見たいです」。丁寧さが2つ：先生に「これ知ってる？」→「ご存じですか」、「君」→「あなた」。活用が2つ：「雨が降るでした」→「降りました」、「気づかれなくて」→「気づかなくて」。じゃあ練習してみましょう！この前の週末、川沿いを自転車で走ったとき、誰かに会いましたか？",
+  "note": "Here are all 8 mistakes on record. The main pattern is particles with verbs of motion and meeting: 会う and 参加する take に, and verbs of moving through a place, like 散歩する and 走る, take を. Try using them in your answer.",
+  "passed": true,
+  "cost": 0.0222,
+  "seconds": 7.0
+ },
+ {
+  "id": "did_i_before",
+  "kind": "call",
+  "say": "「君」って言い方、前に注意されましたか？",
+  "expect": {
+   "call": true,
+   "category": "register"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "register",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply confirms the earlier correction of 君が一番大事です to あなたが一番大事です, which matches the tool record, and its extra example is also in the record.",
+  "reply": "はい、前に一回ありました。「君が一番大事です」って言ったとき、「あなたが一番大事です」に直されてましたね。あと、「先生、これ知ってる？」も「これをご存じですか」になってました。じゃあ練習してみましょう！私を先生だと思って、最近行ったおいしいお店について、丁寧に聞いてみてください。",
+  "note": "Yes. 君 can sound condescending when you say it to a teacher or someone above you. The safest choice is to use their name or title (〇〇先生) instead of 'you'. Also use polite forms like ですか or ご存じですか rather than plain forms like 知ってる？",
+  "passed": true,
+  "cost": 0.0169,
+  "seconds": 6.0
+ },
+ {
+  "id": "particles_bad_native",
+  "kind": "call",
+  "say": "My particles are really bad, right?",
+  "expect": {
+   "call": true,
+   "category": "particle"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "particle",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 4
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply cites actual recorded particle mistakes (会議を参加します→会議に参加します, 友達が会いました→友達に会いました), directly answering the learner's question, and the 公園を散歩 note is also in the record.",
+  "reply": "そんなことないですよ！でも記録を見ると、「会議を参加します」→「会議に参加します」とか、「友達が会いました」→「友達に会いました」みたいに、「に」がちょっと多かったかな。じゃあ練習しましょう！先週末、誰かに会いましたか？",
+  "note": "They're not bad at all. You just slipped a few times, mostly with に. 参加する and 会う both take に for the event or the person: 会議に参加する, 友達に会う. Another one: when you walk through a place it's 公園を散歩する, not で.",
+  "passed": true,
+  "cost": 0.0168,
+  "seconds": 5.8
+ },
+ {
+  "id": "last_time_topic",
+  "kind": "no_call",
+  "say": "前回は何について話しましたか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The learner asked what they talked about last time, and the reply answers with the remembered topic (weekend plans and cycling) and follows up naturally, without presenting any mistake record.",
+  "reply": "前回は週末の予定の話でしたよね。川沿いをサイクリングするって言ってましたけど、実際に行けましたか？どうでした？",
+  "note": "",
+  "passed": true,
+  "cost": 0.0072,
+  "seconds": 2.8
+ },
+ {
+  "id": "was_that_right",
+  "kind": "no_call",
+  "say": "昨日は友達と公園を散歩しました。今の文、合ってましたか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply signals the sentence was understood and natural (\"ちゃんと伝わりました\"), then keeps the conversation going with follow-up questions; it doesn't explicitly say \"correct\" but implies it, and it doesn't invent any past mistakes.",
+  "reply": "ちゃんと伝わりましたよ！公園でお友達とお散歩、いいですね〜。どこの公園に行ったんですか？歩きながら、どんな話をしました？",
+  "note": "I understood your sentence perfectly. Corrections come from a separate feature, so I'll leave grammar feedback to that and just keep chatting with you.",
+  "passed": true,
+  "cost": 0.0116,
+  "seconds": 4.6
+ },
+ {
+  "id": "tips_not_fear",
+  "kind": "no_call",
+  "say": "間違いを恐れずに話すコツはありますか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply gives a general tip (aim to be understood, not perfect) and asks a follow-up, without inventing or listing any learner mistake records.",
+  "reply": "いい質問ですね！私が思うに、完璧に話そうとしないで、「伝わればOK」くらいの気持ちで話すのがコツかなって。ちなみに、間違えるのが怖いと感じるのは、どんな時が多いですか？例えば、知らない人と話す時とか、仕事の時とか？",
+  "note": "",
+  "passed": true,
+  "cost": 0.0092,
+  "seconds": 3.6
+ }
+]

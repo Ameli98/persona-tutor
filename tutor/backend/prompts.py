@@ -23,16 +23,18 @@ REPLY_SCHEMA = {
     "additionalProperties": False,
 }
 
-FEEDBACK_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "natural": {"type": "boolean"},
-        "natural_rewrite": {"type": "string"},
-        "feedback": {"type": "string"},
-    },
-    "required": ["natural", "natural_rewrite", "feedback"],
-    "additionalProperties": False,
-}
+def feedback_schema(s: Settings) -> dict:
+    return {
+        "type": "object",
+        "properties": {
+            "natural": {"type": "boolean"},
+            "natural_rewrite": {"type": "string"},
+            "feedback": {"type": "string"},
+            "category": {"type": "string", "enum": ["none", *s.lang.MISTAKE_CATEGORIES]},
+        },
+        "required": ["natural", "natural_rewrite", "feedback", "category"],
+        "additionalProperties": False,
+    }
 
 EXPLAIN_SCHEMA = {
     "type": "object",
@@ -109,13 +111,38 @@ Conversation rules:
 - Speak natural everyday {t}, without artificially simplifying it; 1–3 sentences at a time, usually ending with one question.
 - The learner often doesn't know what to say: make questions concrete and easy to start answering; offer a couple of options when useful.
 - emotion sets your voice and facial expression for this line; it is how you react to what the learner just said, not your general friendliness. neutral: calm listening, asking, explaining — the default. happy: only when the line itself is joyful (delight, laughing, warm praise, excitement over shared interest). surprised: real surprise at news. sad: sympathy with something unfortunate or lonely. shy: being complimented, embarrassed, admitting something about yourself. angry: playful pouting or mock indignation (being teased, "that's unfair!"). A warm, polite tone alone is neutral. The expression should change with the content; the same emotion several lines in a row usually means you are not reacting.
-- Never comment on or correct the learner's {t} (someone else does that).
+- Never comment on or correct the learner's {t} (someone else does that), unless they ask whether what they just said was right: then answer that in one short sentence and carry on.
 - The learner may ask you something in {t} or in {n} ("what does X mean?", "please say that again"): first answer briefly in simple {t} in text, and add one or two sentences of explanation in {n} in note; then return naturally to the topic. When there is no question, note is an empty string.
 - When a wrap-up instruction from the system is appended to the learner's message: you must end in this line — close today's practice naturally in one or two sentences (thanks, brief encouragement), set closing to true and hints to an empty array. Otherwise closing is false.
 
 Output fields: text = your line in {t}; translation = text translated into {n};
 hints = two hints for answering your question: [3–5 {t} keywords separated by commas, one natural model answer sentence in {t}].
 Output JSON only."""
+
+
+ASK_SCHEMA = {
+    "type": "object",
+    "properties": {"answer": {"type": "string"}},
+    "required": ["answer"],
+    "additionalProperties": False,
+}
+
+
+def ask_system(s: Settings, mem: dict | None = None) -> str:
+    t, n = s.target, s.native
+    remembered = memory.brief(mem or {})
+    remembered = f"\nWhat you remember about the learner (a summary, not a record of exact sentences):\n{remembered}\n" if remembered else ""
+    return f"""You are this character, in your own voice:
+{persona_brief(s)}
+
+You are the learner's {t} tutor, answering their questions in a text chat outside of speaking practice. {learner_brief(s)}
+{remembered}
+Rules:
+- Answer the question directly, in {n}, in a few short lines; {t} words and example sentences stay in {t}, with a {n} translation. Plain text, no markdown.
+- They can ask about anything to do with {t}: meanings, grammar, how to say something, culture, how to study, whether a sentence is right.
+- lookup_past_mistakes returns mistakes the learner made in practice, as recorded by the live corrections. Call it whenever your answer should be about this learner's own weak points: what they get wrong, how they are doing, what they should work on or how they can improve, or practice on their mistakes (pass a category when they name one kind; call once per kind if they name several). Then talk about the concrete sentences it returns; an example sentence of your own must not sound like something they said. For practice, give one exercise at a time and check their answer in your next message. Don't call it for a general question about the language, or general advice that isn't about this learner (e.g. how not to be afraid of mistakes). If it returns nothing, say there is no record of that yet; never make mistakes up.
+
+Output JSON only: answer = your message."""
 
 
 def kickoff_message() -> str:
@@ -128,14 +155,16 @@ WRAP_UP = ("(System: practice time is up. Wrap up now — reply to what the lear
 
 def feedback_system(s: Settings) -> str:
     t, n = s.target, s.native
+    categories = "\n".join(f"  {k}: {v}" for k, v in s.lang.MISTAKE_CATEGORIES.items())
     return f"""You are a strict but not nitpicky native {t} editor. The learner (native language {n}; {t} level: {s.level}) is chatting with a friend in {s.lang.REGISTER}.
 Judge whether the learner's utterance is natural *as {t}*. Look only at:
 - unnatural wording or collocations, redundant words
 {s.lang.FEEDBACK_FOCUS}
 The utterance comes from speech recognition (ASR): usually no punctuation, occasionally misrecognised words. Do not comment on punctuation or sentence breaks, and do not count likely recognition errors (homophones, wrong characters) as the learner's mistakes.
 Ignore basic grammar drills and whether the content is on topic or answers the other person's question (the other person leads the topic); use the context only to judge tone and politeness.
-- Natural: natural=true, natural_rewrite and feedback are empty strings. Do not invent problems.
-- Unnatural: natural=false, natural_rewrite = the whole sentence said naturally (same register, keeping the meaning and the learner's words where possible), feedback = one sentence written in {n} (not in {t}) explaining why.
+- Natural: natural=true, natural_rewrite and feedback are empty strings, category "none". Do not invent problems.
+- Unnatural: natural=false, natural_rewrite = the whole sentence said naturally (same register, keeping the meaning and the learner's words where possible), feedback = one sentence written in {n} (not in {t}) explaining why, category = the main kind of problem:
+{categories}
 Output JSON only."""
 
 

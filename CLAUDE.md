@@ -23,6 +23,7 @@ for new behaviour.
 | Topics | scenario YAMLs: `id`, `title` (English), `titles: {code: ...}`, `setting`, `goal`, `angles` |
 | Prompts | `tutor/backend/prompts.py` (reply / feedback / word explanation / rephrase), `tutor/backend/review.py` (after-session review), `voice/emotion.py` |
 | Lesson before the conversation | `tutor/backend/lesson.py` (prompt + schema; saved to `data/lessons/`); the reply prompt's `lesson_section`; the review's `lesson_use` |
+| Ask tab, tool calling (`lookup_past_mistakes`) | `tutor/backend/ask.py`, `tutor/backend/mistakes.py` (SQLite store, tool definition, input validation), the loop in `llm.AnthropicLLM.stream_json`, the rule in `prompts.ask_system`; eval: `python -m evals.tool_calling` (cases in `evals/tool_calling_cases.yaml`) — rerun it after changing that rule or the tool description |
 | What the tutor remembers | `tutor/backend/memory.py` (`data/learner.json`: fields, caps, update prompt); edited on the page's Memory view |
 | Target-language behaviour | `tutor/lang/<code>.py` — interface documented in `tutor/lang/__init__.py`; warm-up sentences in `tutor/lang/<code>_warmup.yaml` |
 | UI text | `tutor/web/i18n.js` (every key in `en` must exist; other languages fall back to `en`) |

@@ -69,12 +69,13 @@ class Session:
 
     def feedback(self, llm, prev_line: str, user_text: str) -> dict:
         msgs = [{"role": "user", "content": prompts.feedback_user(prev_line, user_text)}]
-        out = llm.json(prompts.feedback_system(self.settings), msgs, prompts.FEEDBACK_SCHEMA, max_tokens=2000)
+        schema = prompts.feedback_schema(self.settings)
+        out = llm.json(prompts.feedback_system(self.settings), msgs, schema, max_tokens=2000)
         self.cost += llm.last_cost
         if out["feedback"] and self.settings.lang.script_ratio(out["feedback"]) >= 0.3:
             # the reason drifted into the target language; ask once more, explicitly
             msgs[0]["content"] += f"\n\n(Write the feedback sentence in {self.settings.native}.)"
-            out = llm.json(prompts.feedback_system(self.settings), msgs, prompts.FEEDBACK_SCHEMA, max_tokens=2000)
+            out = llm.json(prompts.feedback_system(self.settings), msgs, schema, max_tokens=2000)
             self.cost += llm.last_cost
         return out
 

@@ -78,6 +78,15 @@ class _CostMixin:
     def last_cost(self, v: float):
         self._tl.cost = v
 
+    @property
+    def last_tool_calls(self) -> list:
+        """Tool calls made by this thread's last stream_json: [{"name", "input", "result", "is_error"}]."""
+        return getattr(self._tl, "tool_calls", [])
+
+    @last_tool_calls.setter
+    def last_tool_calls(self, v: list):
+        self._tl.tool_calls = v
+
     def json_with_cost(self, *args, **kwargs) -> tuple[dict, float]:
         out = self.json(*args, **kwargs)
         return out, self.last_cost
@@ -124,26 +133,51 @@ class AnthropicLLM(_CostMixin):
         text = next(b.text for b in resp.content if b.type == "text")
         return json.loads(text)
 
-    def stream_json(self, system: str, messages: list, schema: dict, on_text, max_tokens: int = 4000) -> dict:
-        """Like json(), but calls on_text(chunk) for each streamed piece of the JSON text."""
+    def stream_json(self, system: str, messages: list, schema: dict, on_text, max_tokens: int = 4000,
+                    tools: list | None = None, run_tool=None, max_tool_rounds: int = 3) -> dict:
+        """Like json(), but calls on_text(chunk) for each streamed piece of the JSON text.
+
+        With tools: a manual tool-use loop (the reply must keep streaming into TTS, which the SDK's tool runner
+        doesn't do). While the model stops with tool_use, run_tool(name, input) -> (content, is_error) answers
+        every tool_use block of that response in one user message of tool_result blocks, and the request is
+        sent again. After max_tool_rounds the last request disallows tools (tool_choice none) so a reply comes.
+        The tool exchange stays inside this call; the caller's history only gets the final reply."""
         if not messages or messages[0]["role"] != "user":
             messages = [{"role": "user", "content": "（開始）"}] + messages
-        with self.client.beta.messages.stream(
-            model=self.model, max_tokens=max_tokens,
-            betas=["server-side-fallback-2026-07-01"], fallbacks="default",
-            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
-            cache_control={"type": "ephemeral"},
-            messages=messages,
-            output_config={"effort": self.effort, "format": {"type": "json_schema", "schema": schema}},
-        ) as stream:
-            for chunk in stream.text_stream:
-                on_text(chunk)
-            resp = stream.get_final_message()
-        self.last_cost = usage_cost(self.model, resp.usage)
-        if resp.stop_reason == "refusal":
-            raise LLMError(f"refusal: {resp.stop_details}")
-        if resp.stop_reason == "max_tokens":
-            raise LLMError("max_tokens reached")
+        msgs, cost, calls = list(messages), 0.0, []
+        for rnd in range(max_tool_rounds + 1):
+            extra = {}
+            if tools:
+                extra = {"tools": tools, "tool_choice": {"type": "auto" if rnd < max_tool_rounds else "none"}}
+            with self.client.beta.messages.stream(
+                model=self.model, max_tokens=max_tokens,
+                betas=["server-side-fallback-2026-07-01"], fallbacks="default",
+                system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+                cache_control={"type": "ephemeral"},
+                messages=msgs,
+                output_config={"effort": self.effort, "format": {"type": "json_schema", "schema": schema}},
+                **extra,
+            ) as stream:
+                for chunk in stream.text_stream:
+                    on_text(chunk)
+                resp = stream.get_final_message()
+            cost += usage_cost(self.model, resp.usage)
+            if resp.stop_reason == "refusal":
+                raise LLMError(f"refusal: {resp.stop_details}")
+            if resp.stop_reason == "max_tokens":
+                raise LLMError("max_tokens reached")
+            if resp.stop_reason != "tool_use":
+                break
+            # the assistant turn goes back unchanged (thinking blocks included), then every result in one message
+            msgs.append({"role": "assistant", "content": resp.content})
+            results = []
+            for b in (b for b in resp.content if b.type == "tool_use"):
+                content, is_error = run_tool(b.name, b.input)
+                calls.append({"name": b.name, "input": b.input, "result": content, "is_error": is_error})
+                results.append({"type": "tool_result", "tool_use_id": b.id, "content": content,
+                                **({"is_error": True} if is_error else {})})
+            msgs.append({"role": "user", "content": results})
+        self.last_cost, self.last_tool_calls = cost, calls
         return json.loads("".join(b.text for b in resp.content if b.type == "text"))
 
 
@@ -161,7 +195,10 @@ class OllamaLLM(_CostMixin):  # local: last_cost stays 0
         with urllib.request.urlopen(req, timeout=300) as r:
             return json.loads(json.loads(r.read())["message"]["content"])
 
-    def stream_json(self, system: str, messages: list, schema: dict, on_text, max_tokens: int = 4000) -> dict:
+    def stream_json(self, system: str, messages: list, schema: dict, on_text, max_tokens: int = 4000,
+                    tools: list | None = None, run_tool=None, max_tool_rounds: int = 3) -> dict:
+        """Tools are ignored here (local models: the tutor just answers without looking anything up)."""
+        self.last_tool_calls = []
         body = json.dumps({
             "model": self.model, "stream": True, "format": schema, "think": False,
             "messages": [{"role": "system", "content": system}] + messages,

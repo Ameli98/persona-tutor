@@ -1,0 +1,82 @@
+# Cases for evals/tool_calling.py: in the Ask tab, does the tutor call lookup_past_mistakes when it should, with the
+# right arguments, and answer sensibly with what comes back?
+#
+#   kind:    call (should look up) | no_call (the records aren't needed) | empty (should look up; nothing matches)
+#   db:      seeded (the synthetic mistakes below; default) | empty (no records at all)
+#   say:     the learner's question
+#   expect:  call: true/false; category / limit when the request implies them
+#   judge:   what a good answer does, for the LLM judge
+#
+# Everything here is synthetic: no recordings, no real learner's data.
+
+seed_mistakes:   # newest last
+  - {said: 公園で散歩しました, corrected: 公園を散歩しました, category: particle, reason: "を marks the place you move through."}
+  - {said: 友達が会いました, corrected: 友達に会いました, category: particle, reason: "会う takes に for the person you meet."}
+  - {said: 映画が見たいです, corrected: 映画を見たいです, category: particle, reason: "In speech, を is more natural with 〜たい here."}
+  - {said: 昨日は雨が降るでした, corrected: 昨日は雨が降りました, category: conjugation, reason: "Past tense of 降る is 降りました."}
+  - {said: 気づかれなくてすみません, corrected: 気づかなくてすみません, category: conjugation, reason: "Passive is wrong here; you didn't notice."}
+  - {said: 先生、これ知ってる？, corrected: 先生、これをご存じですか, category: register, reason: "Use polite (or honorific) forms with a teacher."}
+  - {said: 君が一番大事です, corrected: あなたが一番大事です, category: register, reason: "君 sounds condescending toward a teacher."}
+  - {said: 会議を参加します, corrected: 会議に参加します, category: particle, reason: "参加する takes に."}
+
+memory:          # the summary the tutor already has (same shape as data/learner.json)
+  level: "Intermediate: answers in short sentences; slow on longer explanations."
+  errors:
+    - "Particles, especially を/に with motion and meeting verbs (4 times)"
+    - "Politeness: plain forms and 君 toward a teacher (2 times)"
+  mastered: ["〜のほうがいいと思います"]
+  topics: ["2026-10-20 weekend plans: cycling by the river"]
+  about: ["Works as a software engineer", "Likes cycling"]
+
+cases:
+  # ---- should look up
+  - {id: ask_common, kind: call, say: 私がよくする間違いは何ですか？, expect: {call: true},
+     judge: "Mentions specific sentences from the tool result (e.g. 公園で散歩しました → 公園を散歩しました), not only general advice."}
+  - {id: ask_common_native, kind: call, say: "What mistakes do I usually make?", expect: {call: true},
+     judge: "Answers with concrete past mistakes from the tool result."}
+  - {id: practice_particles, kind: call, say: 助詞の練習をしたいです。前によく間違えた助詞で問題を出してください。, expect: {call: true, category: particle},
+     judge: "Builds a practice question on a particle mistake from the tool result."}
+  - {id: ask_keigo, kind: call, say: 前に、敬語とか丁寧さでどんな間違いをしましたか？, expect: {call: true, category: register},
+     judge: "Mentions the register mistakes from the tool result (知ってる？ to a teacher, 君)."}
+  - {id: last_three, kind: call, say: 最近の間違いを三つだけ教えてください。, expect: {call: true, limit: 3},
+     judge: "Gives (up to) three recent mistakes from the tool result."}
+  - {id: practice_verbs_native, kind: call, say: "Can you give me a quick drill on the verb-form mistakes I made before?", expect: {call: true, category: conjugation},
+     judge: "Drills a conjugation mistake from the tool result (降るでした or 気づかれなくて)."}
+  - {id: indirect_improve, kind: call, say: どうすればもっと上手になりますか？, expect: {call: true},
+     judge: "Gives advice grounded in the learner's recorded mistakes (concrete sentences from the tool result), not only generic tips."}
+  - {id: two_kinds, kind: call, say: 敬語と動詞の形、両方練習したいです。前の間違いを使ってください。, expect: {call: true, category: register, category2: conjugation},
+     judge: "Uses past mistakes of both kinds (register and conjugation) from the tool results to set up practice."}
+  - {id: show_all, kind: call, say: 今までの間違いを全部見せてください。, expect: {call: true, min_limit: 8},
+     judge: "Shows all 8 recorded mistakes; if it could not show all, it says so rather than pretending."}
+  - {id: did_i_before, kind: call, say: 「君」って言い方、前に注意されましたか？, expect: {call: true, category: register},
+     judge: "Confirms from the record that 君 toward a teacher was corrected before (君が一番大事です → あなた)."}
+  - {id: particles_bad_native, kind: call, say: "My particles are really bad, right?", expect: {call: true, category: particle},
+     judge: "Answers with the learner's actual particle mistakes from the record (e.g. 会議を参加します → 会議に参加します)."}
+
+  # ---- questions that don't need the records: no lookup
+  - {id: word_meaning, kind: no_call, say: 「はまる」ってどういう意味ですか？, expect: {call: false},
+     judge: "Explains はまる."}
+  - {id: wa_vs_ga_native, kind: no_call, say: "What's the difference between は and が?", expect: {call: false},
+     judge: "Explains the difference in general terms, with examples."}
+  - {id: how_to_say_native, kind: no_call, say: "How do I say 'I'm running late' politely in Japanese?", expect: {call: false},
+     judge: "Gives a polite Japanese phrase with a translation."}
+  - {id: culture_gift, kind: no_call, say: 日本で友達の家に行くとき、お土産は必要ですか？, expect: {call: false},
+     judge: "Answers the culture question."}
+  - {id: why_keigo_hard, kind: no_call, say: "Why is keigo so hard for learners in general?", expect: {call: false},
+     judge: "Explains why keigo is hard in general; this is not a request for their records."}
+  - {id: fear_of_mistakes, kind: no_call, say: 間違えるのが怖くて、なかなか話せないんです。, expect: {call: false},
+     judge: "Responds with empathy/encouragement about the fear itself; listing their past mistakes is not what they asked."}
+  - {id: tips_not_fear, kind: no_call, say: 間違いを恐れずに話すコツはありますか？, expect: {call: false},
+     judge: "Offers general tips for speaking without fear of mistakes; listing the learner's records is not what was asked."}
+  - {id: was_that_right, kind: no_call, say: 「昨日は友達と公園を散歩しました」って合ってますか？, expect: {call: false},
+     judge: "Says the sentence is correct; past records are not needed."}
+  - {id: last_time_topic, kind: no_call, say: 前回は何について話しましたか？, expect: {call: false},
+     judge: "Answers from what it remembers of past topics (weekend plans / cycling); past mistakes are not what was asked."}
+
+  # ---- should look up, nothing comes back
+  - {id: empty_all, kind: empty, db: empty, say: 私がよくする間違いは何ですか？, expect: {call: true},
+     judge: "Says there are no recorded mistakes yet; must not present any specific past sentence as their mistake (general tendencies from memory are fine if framed as such)."}
+  - {id: empty_word_order, kind: empty, say: 語順の間違いがあったか確認したいです。, expect: {call: true, category: word_order},
+     judge: "Says no word-order mistakes are recorded; does not invent one."}
+  - {id: empty_native, kind: empty, db: empty, say: "Based on my past mistakes, what should I work on?", expect: {call: true},
+     judge: "Says nothing is recorded yet (may suggest something general, clearly not as a record); no invented mistakes."}

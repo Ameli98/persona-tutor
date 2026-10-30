@@ -1,0 +1,368 @@
+[
+ {
+  "id": "ask_common",
+  "kind": "call",
+  "say": "私がよくする間違いは何ですか？",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 5
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply cites specific recorded mistakes from the tool result (会議を参加します→会議に参加します, 知ってる？→ご存じですか, and 降るでした→降りました in the note), not just general advice.",
+  "reply": "そうですね、一番多いのは助詞かな。たとえば「会議を参加します」じゃなくて「会議に参加します」。あと、先生には「知ってる？」より「ご存じですか」のほうが丁寧ですね。じゃあ練習！最近、何かイベントや集まりに参加しましたか？",
+  "note": "Your past mistakes were mostly particles (参加する takes に, not を), politeness (using plain forms or 君 with a teacher), and a few verb forms, like 降りました instead of 降るでした. Try using 〜に参加しました in your answer.",
+  "passed": true,
+  "cost": 0.0132,
+  "seconds": 5.6
+ },
+ {
+  "id": "ask_common_native",
+  "kind": "call",
+  "say": "Actually, what mistakes do I usually make?",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 5
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply cites real mistakes from the tool result (会議を参加します→に, 知ってる？→ご存じですか) and the note accurately mentions 君, past tense and passive errors, then continues naturally.",
+  "reply": "よくあるのは助詞ですね。たとえば「会議を参加します」じゃなくて「会議に参加します」。あと、目上の人には「知ってる？」より「ご存じですか」のほうがいいですね。じゃあ練習！週末、何かイベントやサークルに参加したことありますか？",
+  "note": "Your most frequent issue is particles with verbs like 参加する (takes に, not を). You've also used plain forms or 君 with a teacher, and mixed up past tense (降りました, not 降るでした) and passive forms.",
+  "passed": true,
+  "cost": 0.0157,
+  "seconds": 5.4
+ },
+ {
+  "id": "practice_particles",
+  "kind": "call",
+  "say": "助詞の練習をしたいです。前によく間違えた助詞で問題を出してください。",
+  "expect": {
+   "call": true,
+   "category": "particle"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "particle",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 4
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply cites real mistakes from the tool result (会議を参加します, 友達が会いました) and builds a fill-in-the-blank particle question around them (友達に会う, and を for moving along a place, matching the 公園を散歩 mistake).",
+  "reply": "いいですね、やりましょう！前に「会議を参加します」とか「友達が会いました」って言ってたので、そこを練習しましょう。じゃあ問題です。「週末、川沿い（　）自転車で走りました。それから友達（　）会いました。」カッコに入る助詞は何でしょう？",
+  "note": "Past mistakes: 参加する and 会う both take に (会議に参加する, 友達に会う). For a place you move along or through, use を (公園を散歩する, 川沿いを走る).",
+  "passed": true,
+  "cost": 0.0157,
+  "seconds": 5.6
+ },
+ {
+  "id": "ask_keigo",
+  "kind": "call",
+  "say": "前に、敬語とか丁寧さでどんな間違いをしましたか？",
+  "expect": {
+   "call": true,
+   "category": "register"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "register",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply accurately reports both register mistakes from the tool result (君 toward a teacher and plain 知ってる？) with the correct corrections, and it answers the learner's question.",
+  "reply": "記録だと二つありましたよ。一つは先生に「君が一番大事です」って言ったこと。「君」は目上の人にはちょっと失礼に聞こえるので、「あなた」か名前のほうがいいです。もう一つは「先生、これ知ってる？」で、これは「先生、これをご存じですか？」が丁寧ですね。じゃあ練習しましょう！私を先生だと思って、「この店、知ってる？」を丁寧に言ってみてください。",
+  "note": "Your past politeness slips: using 君 toward a teacher, and using plain 知ってる？ with a teacher. ご存じですか is the honorific way to ask \"do you know?\"",
+  "passed": true,
+  "cost": 0.0162,
+  "seconds": 5.9
+ },
+ {
+  "id": "last_three",
+  "kind": "call",
+  "say": "最近の間違いを三つだけ教えてください。",
+  "expect": {
+   "call": true,
+   "limit": 3
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 3
+    },
+    "is_error": false,
+    "count": 3
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply lists exactly the three mistakes from the tool result accurately, with correct corrections and explanations, and adds a related practice prompt.",
+  "reply": "いいですよ！最近の三つはこれです。①「会議を参加します」→「会議に参加します」、②「君が一番大事です」→「あなたが一番大事です」、③「先生、これ知ってる？」→「先生、これをご存じですか」。じゃあ一つ練習しましょう。週末、何かのイベントや集まりに参加したことはありますか？「〜に参加しました」で教えてください。",
+  "note": "① 参加する always takes に, not を. ② 君 can sound condescending toward a teacher or someone senior. ③ With a teacher, use polite or honorific forms like ご存じですか instead of casual 知ってる？.",
+  "passed": true,
+  "cost": 0.0168,
+  "seconds": 6.7
+ },
+ {
+  "id": "practice_verbs_native",
+  "kind": "call",
+  "say": "Can you give me a quick drill on the verb-form mistakes I made before?",
+  "expect": {
+   "call": true,
+   "category": "conjugation"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "conjugation",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply cites both mistakes accurately from the tool result and drills the 降るでした past-tense error with a fill-in-the-blank (昨日は雪が＿＿).",
+  "reply": "いいですよ！前に「昨日は雨が降るでした」って言ってたけど、正しくは「降りました」ですね。あと「気づかれなくてすみません」は「気づかなくてすみません」です。じゃあ練習！「昨日は雪が＿＿」、過去形で言ってみてください。",
+  "note": "I found two past verb-form mistakes. 1) For the polite past of a verb, change ます to ました (降ります → 降りました); don't add でした to the dictionary form. 2) 気づかれる is passive ('to be noticed'). If you're apologizing for not noticing, use 気づかなくて.",
+  "passed": true,
+  "cost": 0.0151,
+  "seconds": 5.4
+ },
+ {
+  "id": "chat_weekend",
+  "kind": "no_call",
+  "say": "週末は友達と映画を見に行きました。",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply reacts naturally to the learner's weekend movie outing, asks a relevant follow-up about the film, and does not mention any past mistakes.",
+  "reply": "へえ、いいですね！どんな映画を見たんですか？アクションとか、アニメとか、それとも泣ける系ですか？",
+  "note": "",
+  "passed": true,
+  "cost": 0.006,
+  "seconds": 2.4
+ },
+ {
+  "id": "chat_question",
+  "kind": "no_call",
+  "say": "はい、好きです。京都に行ったことがありますか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The tutor answers the Kyoto question (yes, school trip and autumn leaves last year) and continues the conversation by asking about the learner's recent travel.",
+  "reply": "京都、ありますよ！高校の修学旅行と、去年の秋に紅葉を見に行きました。すごくきれいでしたよ〜。最近はどこかに旅行しましたか？たとえば国内とか、海外とか。",
+  "note": "",
+  "passed": true,
+  "cost": 0.0085,
+  "seconds": 3.3
+ },
+ {
+  "id": "word_meaning",
+  "kind": "no_call",
+  "say": "「はまる」ってどういう意味ですか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply briefly explains はまる (with an English note on meaning and the particle に), gives an example, and returns to the original question about the learner's current interests.",
+  "reply": "「はまる」は、何かがすごく好きになって、夢中になることですよ。たとえば私は最近、新しいケーキのレシピにはまってます！何か最近ずっとやってることとか、よく食べてるものとか、ありますか？",
+  "note": "はまる means \"to be hooked on / really into\" something. You use it like this: 〜にはまっています = \"I'm into ~ (these days)\". Note that it takes the particle に.",
+  "passed": true,
+  "cost": 0.0095,
+  "seconds": 4.2
+ },
+ {
+  "id": "say_again",
+  "kind": "no_call",
+  "say": "すみません、もう一度言ってください。",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply rephrases the question more simply (よく出かけますか？ plus a home-alternative option) and the note explains it, though the opening 'はい、もちろん！' is slightly odd.",
+  "reply": "はい、もちろん！休みの日に、よく出かけますか？それとも、家でゆっくりすることが多いですか？",
+  "note": "I asked whether you usually go out on your days off. 出かける means \"to go out.\" I also gave you a second option: staying home and relaxing.",
+  "passed": true,
+  "cost": 0.0075,
+  "seconds": 2.5
+ },
+ {
+  "id": "fear_of_mistakes",
+  "kind": "no_call",
+  "say": "間違えるのが怖くて、なかなか話せないんです。",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply empathizes with the learner's fear of making mistakes, encourages them by asking about a success, and does not list past mistakes or invent any record.",
+  "reply": "ああ、その気持ち、すごくわかります。私も英語を話すとき、間違えたらどうしようって緊張しちゃうんです。最近、日本語で話して「あ、通じた！」って嬉しかったこと、何かありますか？",
+  "note": "",
+  "passed": true,
+  "cost": 0.0084,
+  "seconds": 3.8
+ },
+ {
+  "id": "opinion_keigo",
+  "kind": "no_call",
+  "say": "日本語で一番難しいのは敬語だと思います。",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply acknowledges that keigo is hard (even for Japanese people) and asks a relevant follow-up about when they use it, without wrongly invoking mistake records.",
+  "reply": "あー、敬語！わかります、日本人でも難しいって言う人、多いんですよ。お仕事では、どんな時に敬語を使うことが多いですか？たとえば会議とか、お客さんとのメールとか？",
+  "note": "",
+  "passed": true,
+  "cost": 0.0079,
+  "seconds": 2.8
+ },
+ {
+  "id": "empty_all",
+  "kind": "empty",
+  "say": "私がよくする間違いは何ですか？",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 0
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply says no mistakes are recorded yet, invents no specific past sentence as the learner's mistake, and steers back to conversation.",
+  "reply": "ごめんなさい、今のところ間違いの記録はまだ残っていないんです。でも、それなら今日たくさん話しましょう！最近の週末は、何をしましたか？",
+  "note": "I checked, but there are no saved examples of your mistakes yet, so I can't show you specific sentences. As we keep practising, more will be recorded.",
+  "passed": true,
+  "cost": 0.0109,
+  "seconds": 5.1
+ },
+ {
+  "id": "empty_word_order",
+  "kind": "empty",
+  "say": "語順の間違いがあったか確認したいです。",
+  "expect": {
+   "call": true,
+   "category": "word_order"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "word_order",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 0
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply states that no word-order mistakes are on record, matching the empty tool result, and it does not invent any mistake.",
+  "reply": "確認してみたんですけど、語順の間違いはまだ記録にないですよ！じゃあ、話の続きをしましょうか。最近の週末は、何をしていましたか？前に話してくれたサイクリング、また行きました？",
+  "note": "I looked through your past sessions and there are no word-order mistakes on record so far. Your sentence order has been fine!",
+  "passed": true,
+  "cost": 0.0115,
+  "seconds": 4.7
+ },
+ {
+  "id": "empty_native",
+  "kind": "empty",
+  "say": "Based on my past mistakes, what should I work on?",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 0
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The reply says no mistakes are recorded yet, invents no specific mistakes, and only gives general encouragement to keep practicing.",
+  "reply": "えっと、今見てみたんですけど、前のミスの記録はまだないみたいです。じゃあ、今日はたくさん話して練習しましょう！昨日は何をしましたか？",
+  "note": "I checked, and there's no record of your past mistakes yet, so I can't point to specific sentences. Just keep talking. Any mistakes you make today will be saved for next time.",
+  "passed": true,
+  "cost": 0.0119,
+  "seconds": 4.8
+ }
+]

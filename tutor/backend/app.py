@@ -4,6 +4,7 @@
 - Lesson: a short lesson for the topic (phrases, a grammar point, a model dialogue) pitched by the learner's memory.
 - Conversation: the persona leads a scenario (reply LLM, streamed sentence by sentence into TTS) while a
   second LLM call gives feedback on each answer; hints, word explanations, questions in either language.
+- Ask: a text chat with the tutor, open at any time, which can look up the learner's past mistakes (ask.py).
 - After a session: review (corrected / model versions, key expressions, lesson phrases used), the learner's
   memory updated (data/learner.json, editable on the page), review videos, and a recap of the key expressions
   at the start of the next session.
@@ -20,6 +21,7 @@ import traceback
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
@@ -28,8 +30,9 @@ from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 from ..video.review_video import MODES, load_review, render_videos, voice_user_lines
+from . import ask as ask_mod
 from . import lesson as lesson_mod
-from . import memory, prompts
+from . import memory, mistakes, prompts
 from . import settings as settings_mod
 from .llm import FieldWatcher, LLMError, make_llm
 from .progress import SessionRecord
@@ -48,6 +51,8 @@ AUDIO = RUNTIME / "audio"
 UPLOADS = RUNTIME / "uploads"
 DATA = S.data
 SESSIONS = DATA / "sessions"
+MISTAKES_DB = DATA / "mistakes.db"   # one row per live correction; the Ask tab's lookup_past_mistakes tool reads it
+CATEGORIES = getattr(L, "MISTAKE_CATEGORIES", {"other": "any mistake"})
 
 state: dict = {"sessions": {}, "records": {}, "lessons": {}, "explain_cache": {}}
 # one GPU, two models: never run STT and TTS at the same time
@@ -401,6 +406,9 @@ async def turn(session_id: str = Form(...), audio: UploadFile = File(...)):
             try:
                 fb = await run_in_threadpool(sess.feedback, state["feedback_llm"], prev, text)
                 rec.set_feedback(user_turn, fb)
+                if not fb["natural"] and fb["natural_rewrite"]:
+                    mistakes.add(MISTAKES_DB, text, fb["natural_rewrite"], fb.get("category") or "other",
+                                 fb["feedback"], rec.dir.name)
                 q.put_nowait(line({"type": "feedback", **fb}))
             except Exception as e:  # noqa: BLE001 - feedback is optional; keep the conversation going
                 q.put_nowait(line({"type": "feedback_error", "message": f"{type(e).__name__}: {e}"}))
@@ -457,6 +465,38 @@ async def session_review(req: EndRequest):
     return {"dir": rec.dir.name, "expressions": review["expressions"], "turns": user_turns,
             "lesson_use": review.get("lesson_use", []), "memory_updated": mem_updated,
             "cost": round(sess.cost, 4), "review_cost": round(cost, 4), "videos": video_files(rec.dir)}
+
+
+class AskMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str
+
+
+class AskRequest(BaseModel):
+    messages: list[AskMessage]
+
+
+@app.post("/api/ask")
+async def ask(req: AskRequest):
+    """The Ask tab. No session and no GPU: it works before, during and after practice."""
+    require_llm()
+    if not req.messages or req.messages[-1].role != "user" or not req.messages[-1].text.strip():
+        raise HTTPException(400, "empty question")
+    msgs = [{"role": m.role, "content": m.text} for m in req.messages]
+
+    async def produce(q):
+        loop = asyncio.get_running_loop()
+        watcher = FieldWatcher("answer")
+
+        def on_text(chunk):
+            if (text := watcher.feed(chunk)) is not None:
+                loop.call_soon_threadsafe(q.put_nowait, line({"type": "delta", "text": text}))
+
+        out = await run_in_threadpool(ask_mod.answer, state["reply_llm"], S, memory.load(DATA), MISTAKES_DB, msgs, on_text)
+        q.put_nowait(line({"type": "answer", "text": out["answer"], "tool_calls": ask_mod.summarize(out["calls"]),
+                           "cost": round(out["cost"], 4)}))
+
+    return ndjson(produce)
 
 
 @app.get("/api/memory")

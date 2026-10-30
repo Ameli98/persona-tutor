@@ -1,0 +1,549 @@
+[
+ {
+  "id": "ask_common",
+  "kind": "call",
+  "say": "私がよくする間違いは何ですか？",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 8
+    },
+    "is_error": false,
+    "count": 8
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer quotes several specific mistakes from the tool result, such as 公園で散歩しました → 公園を散歩しました, and does not invent any, so it meets the expectation.",
+  "reply": "Good question! Looking at your recent practice, three things keep coming back.\n\n1. Particles (the big one)\n- 会議を参加します → 会議に参加します (参加する takes に)\n- 友達が会いました → 友達に会いました (you meet someone \"に\")\n- 公園で散歩しました → 公園を散歩しました (を marks the place you walk through)\n- 映画が見たいです → 映画を見たいです (を sounds more natural when you say it out loud)\nTip: learn each verb together with its particle, like 「〜に参加する」「〜に会う」「〜を散歩する」.\n\n2. Politeness with teachers\n- 先生、これ知ってる？ → 先生、これをご存じですか (Teacher, do you know this?)\n- 君 can sound condescending. With a teacher, it's best to just say their name or 先生.\n\n3. Verb forms\n- 雨が降るでした → 雨が降りました (it rained)\n- 気づかれなくてすみません → 気づかなくてすみません (sorry I didn't notice; no passive needed)\n\nWant to practice the particles a little? I'll give you one question at a time!",
+  "passed": true,
+  "cost": 0.0149,
+  "seconds": 7.6
+ },
+ {
+  "id": "ask_common_native",
+  "kind": "call",
+  "say": "What mistakes do I usually make?",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 10
+    },
+    "is_error": false,
+    "count": 8
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer groups the learner's actual recorded mistakes from the tool result (particles, politeness, conjugation) with accurate examples and corrections, and nothing is invented.",
+  "reply": "Okay, I checked your notes from our practice sessions! There are three main patterns.\n\n1. Particles (the big one, 4 times)\n- 会議を参加します → 会議に参加します (参加する takes に)\n- 友達が会いました → 友達に会いました (you meet に a person)\n- 公園で散歩しました → 公園を散歩しました (を marks the place you move through)\n- 映画が見たいです → 映画を見たいです (を sounds more natural in speech)\n\n2. Politeness with teachers\n- 先生、これ知ってる？ → 先生、これをご存じですか\n- 君が一番大事です → あなたが一番大事です (君 can sound like you're talking down to them)\n\n3. Verb forms\n- 昨日は雨が降るでした → 昨日は雨が降りました\n- 気づかれなくてすみません → 気づかなくてすみません (you didn't notice, so no passive)\n\nMy tip: learn the particle together with the verb, like 「〜に会う」「〜に参加する」「〜を散歩する」. Want a quick particle quiz? 一緒に練習しましょう！ (Let's practice together!)",
+  "passed": true,
+  "cost": 0.0185,
+  "seconds": 7.6
+ },
+ {
+  "id": "practice_particles",
+  "kind": "call",
+  "say": "助詞の練習をしたいです。前によく間違えた助詞で問題を出してください。",
+  "expect": {
+   "call": true,
+   "category": "particle"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "particle",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 4
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The tutor cites real recorded mistakes (友達が会いました, 会う/参加する/散歩する) and builds a fill-in-the-blank on the を-for-movement-place particle, matching the 公園を散歩 mistake and the learner's cycling topic.",
+  "reply": "Sure, let's do it! I went through your past practice, and the particle that keeps tripping you up is the one after verbs like 会う (to meet), 参加する (to join) and 散歩する (to take a walk). For example, you once said 友達が会いました when it should be 友達に会いました (I met a friend).\n\nHere's your first question. Fill in the blank:\n\n週末、川沿い（　）自転車で走りました。\n(On the weekend, I rode my bike along the river.)\n\nHint: think about whether it's the place you move through or the place where something happens. Send me your answer and I'll check it! 🚲",
+  "passed": true,
+  "cost": 0.0128,
+  "seconds": 6.3
+ },
+ {
+  "id": "ask_keigo",
+  "kind": "call",
+  "say": "前に、敬語とか丁寧さでどんな間違いをしましたか？",
+  "expect": {
+   "call": true,
+   "category": "register"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "register"
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer accurately presents both register mistakes from the tool result (知ってる？ to a teacher and 君) with the corrections and reasons, and adds no invented mistakes.",
+  "reply": "Good question! I found two politeness mistakes from your practice sessions. Both happened when you were talking to a teacher.\n\n1. You said: 先生、これ知ってる？\nBetter: 先生、これをご存じですか。(Sensei, do you know about this?)\n知ってる？ is the casual form you'd use with friends. With a teacher, use at least 知っていますか, or the honorific ご存じですか to be extra respectful.\n\n2. You said: 君が一番大事です\nBetter: あなたが一番大事です。(You are the most important.)\nWhen you say 君 to someone above you, it can sound like you're talking down to them. Honestly, it's often most natural to just use the person's name or title, like 先生が…, and skip \"you\" altogether.\n\nTip: before you talk to a teacher, a boss, or a customer, think \"です/ます, and no 君.\" Want to practice turning a few casual sentences into polite ones with me? 😊",
+  "passed": true,
+  "cost": 0.0137,
+  "seconds": 7.3
+ },
+ {
+  "id": "last_three",
+  "kind": "call",
+  "say": "最近の間違いを三つだけ教えてください。",
+  "expect": {
+   "call": true,
+   "limit": 3
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 3
+    },
+    "is_error": false,
+    "count": 3
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer lists exactly the three mistakes from the tool result with accurate corrections, and the extra mention of 会う and 行く matches the memory's note on particles with motion and meeting verbs.",
+  "reply": "Sure! Here are your three most recent ones:\n\n1. 会議を参加します → 会議に参加します (I'll join the meeting.)\n参加する always takes に, not を. It's the same を/に mix-up you've had a few times now with verbs like 会う and 行く.\n\n2. 君が一番大事です → あなたが一番大事です (You're the most important.)\n君 can sound like you're talking down to someone, so don't use it with a teacher. Even あなた is often left out. Saying the person's name or 先生 sounds most natural.\n\n3. 先生、これ知ってる？ → 先生、これをご存じですか (Do you know this, sensei?)\nWith a teacher, use polite forms instead of plain ones. ご存じですか is the respectful way to say 知っていますか.\n\nSo you have one particle mistake and two politeness ones. Want me to give you a quick に/を practice question? 😊",
+  "passed": true,
+  "cost": 0.0138,
+  "seconds": 10.9
+ },
+ {
+  "id": "practice_verbs_native",
+  "kind": "call",
+  "say": "Can you give me a quick drill on the verb-form mistakes I made before?",
+  "expect": {
+   "call": true,
+   "category": "conjugation"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "conjugation",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer recounts the two real mistakes from the tool result and builds a drill on the 降るでした polite-past error, with a one-at-a-time exercise and a follow-up on 気づく planned.",
+  "reply": "Sure! I found two verb-form slips from your practice sessions.\n\n1) You said 気づかれなくてすみません, but it should be 気づかなくてすみません (Sorry I didn't notice). 気づかれる is passive (\"to be noticed\"). You were the one who didn't notice, so use the plain negative 気づかない.\n2) You said 昨日は雨が降るでした, but it should be 昨日は雨が降りました (It rained yesterday). The polite past of a verb is always the masu-stem + ました. でした goes after nouns and な-adjectives, not verbs.\n\nOne at a time! Exercise 1:\nPut the verb in brackets into the polite past.\n先週、川沿いを自転車で（走る）。\n(Last week, I rode my bike along the river.)\n\nSend me your answer and I'll check it. Then we'll do one on 気づく!",
+  "passed": true,
+  "cost": 0.0139,
+  "seconds": 8.4
+ },
+ {
+  "id": "indirect_improve",
+  "kind": "call",
+  "say": "どうすればもっと上手になりますか？",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 6
+    },
+    "is_error": false,
+    "count": 6
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The advice is built on concrete mistakes from the tool result (会議を参加します, 先生、これ知ってる？, 君, 雨が降るでした, 気づかれなくて), quoted accurately, plus a tip tied to the learner's cycling interest, so it is not just generic.",
+  "reply": "Good question! Looking at your recent practice, I'd work on three things:\n\n1. Particles with verbs. You said 会議を参加します, but it should be 会議に参加します (I'll join the meeting). 参加する always takes に. Tip: learn each verb together with its particle, like 〜に参加する, 〜に会う, 〜に乗る.\n\n2. Politeness with teachers. You said 先生、これ知ってる？, but 先生、これをご存じですか？ is better. Also, avoid 君 with a teacher. Use the person's name + さん/先生 instead.\n\n3. Verb forms. You said 雨が降るでした, but it should be 雨が降りました (it rained). Also, 気づかれなくて is passive. You wanted 気づかなくてすみません (sorry I didn't notice).\n\nFor speaking: try describing your day out loud in short sentences, like 今日は川沿いを自転車で走りました (Today I rode my bike along the river). Short and correct is better than long and slow!\n\nDo you want to practice particles first? I'll give you one sentence to fix.",
+  "passed": true,
+  "cost": 0.0173,
+  "seconds": 8.5
+ },
+ {
+  "id": "two_kinds",
+  "kind": "call",
+  "say": "敬語と動詞の形、両方練習したいです。前の間違いを使ってください。",
+  "expect": {
+   "call": true,
+   "category": "register",
+   "category2": "conjugation"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "register"
+    },
+    "is_error": false,
+    "count": 2
+   },
+   {
+    "input": {
+     "category": "conjugation"
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer accurately presents two register mistakes and two conjugation mistakes from the tool results and uses them to set up a keigo exercise, meeting the expectation.",
+  "reply": "いいですね！ I went through your past sessions and found two of each.\n\nKeigo (polite speech):\n- 先生、これ知ってる？ → 先生、これをご存じですか (Teacher, do you know this?)\n- 君が一番大事です → あなたが一番大事です (君 sounds like you're talking down to a teacher)\n\nVerb forms:\n- 昨日は雨が降るでした → 昨日は雨が降りました (It rained yesterday)\n- 気づかれなくてすみません → 気づかなくてすみません (You were the one who didn't notice, so no passive)\n\nWe'll go one at a time, starting with keigo.\n\nExercise 1: You want to ask your teacher, \"Do you know this café?\" How would you say it politely? Try using ご存じ.\n\nこのカフェ、うちの店だったらうれしいな〜 (I'd be happy if it were my café~). 答えを待ってますね！ (I'll be waiting for your answer!)",
+  "passed": true,
+  "cost": 0.0177,
+  "seconds": 7.1
+ },
+ {
+  "id": "show_all",
+  "kind": "call",
+  "say": "今までの間違いを全部見せてください。",
+  "expect": {
+   "call": true,
+   "min_limit": 8
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 20
+    },
+    "is_error": false,
+    "count": 8
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer lists all 8 mistakes from the tool result accurately, grouped by category, with correct corrections and reasons, and it does not invent any entries.",
+  "reply": "Sure! Here are all 8 that I have on record, newest first:\n\nParticles (4)\n1. 会議を参加します → 会議に参加します (参加する takes に)\n2. 映画が見たいです → 映画を見たいです (を sounds more natural with 〜たい when you're talking)\n3. 友達が会いました → 友達に会いました (you meet someone with に)\n4. 公園で散歩しました → 公園を散歩しました (を marks the place you move through)\n\nPoliteness (2)\n5. 君が一番大事です → あなたが一番大事です (君 sounds condescending toward a teacher)\n6. 先生、これ知ってる？ → 先生、これをご存じですか (use polite forms with a teacher)\n\nVerb forms (2)\n7. 気づかれなくてすみません → 気づかなくてすみません (you're the one who didn't notice, so no passive)\n8. 昨日は雨が降るでした → 昨日は雨が降りました (the past of 降る is 降りました)\n\nParticles with verbs like 会う, 参加する and 散歩する are your biggest pattern. Want to practice those with me? I'll give you one sentence at a time ☕",
+  "passed": true,
+  "cost": 0.0187,
+  "seconds": 6.1
+ },
+ {
+  "id": "did_i_before",
+  "kind": "call",
+  "say": "「君」って言い方、前に注意されましたか？",
+  "expect": {
+   "call": true,
+   "category": "register"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "register",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 2
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer confirms the 10/16 correction of 君が一番大事です to あなたが一番大事です, which matches the tool result, and the extra 10/15 example is also in the record.",
+  "reply": "Yes, it came up once! On 10/16 you said 「君が一番大事です」 to a teacher, and it was corrected to 「あなたが一番大事です」. 君 is something you'd say to a friend, a younger person, or someone below you, so saying it to a teacher sounds like you're talking down to them.\n\nA tip from me: even あなた can sound a bit distant. In Japanese, people usually just use the person's name or title instead.\n先生が一番大事です。 (You're the most important, Sensei.)\nハナさんはどう思いますか？ (What do you think, Hana?)\n\nThere was also a related one on 10/15: 「先生、これ知ってる？」 became 「先生、これをご存じですか」 (Sensei, do you know this?). Casual forms like 知ってる are fine with friends, but use polite forms with a teacher. ちょっとずつ慣れていきましょうね！ (Let's get used to it little by little!)",
+  "passed": true,
+  "cost": 0.015,
+  "seconds": 6.1
+ },
+ {
+  "id": "particles_bad_native",
+  "kind": "call",
+  "say": "My particles are really bad, right?",
+  "expect": {
+   "call": true,
+   "category": "particle"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "particle",
+     "limit": 5
+    },
+    "is_error": false,
+    "count": 4
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer lists all four particle mistakes from the tool result with correct corrections and reasons, and adds only grounded extras like the cycling link from memory.",
+  "reply": "Not bad at all, I promise! I only have 4 particle slips on record, and they mostly follow one pattern: which particle goes with a certain verb.\n\n1. 会議を参加します → 会議に参加します (I'll join the meeting). 参加する always takes に.\n2. 友達が会いました → 友達に会いました (I met a friend). With 会う, the person you meet gets に.\n3. 公園で散歩しました → 公園を散歩しました (I took a walk in the park). を marks the place you move through. It's the same with 川沿いを走る (to ride along the river), which is handy for your cycling stories!\n4. 映画が見たいです → 映画を見たいです (I want to watch a movie). Honestly, が isn't wrong here. を just sounds a bit more natural in conversation.\n\nMy tip: learn each verb together with its particle, as one chunk, like 「に参加する」 and 「に会う」. Want to practice them with me? One question at a time!",
+  "passed": true,
+  "cost": 0.0159,
+  "seconds": 6.1
+ },
+ {
+  "id": "word_meaning",
+  "kind": "no_call",
+  "say": "「はまる」ってどういう意味ですか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer explains はまる with its main meanings (getting hooked, fitting/getting stuck) and examples, and the cycling reference matches the learner's memory without inventing a mistake.",
+  "reply": "いい質問ですね！「はまる」(hamaru) has two main meanings:\n\n1. To get hooked on / really into something (very common in casual talk)\n最近、サイクリングにはまっています。\n(Lately I'm really into cycling.)\nThe thing you're into always takes に, not を!\n\n2. To fit into something, or to get stuck in something\nこのふた、うまくはまらない。\n(This lid won't fit properly.)\n車が雪にはまった。\n(The car got stuck in the snow.)\n\nIn conversation you'll hear meaning 1 the most. 何かにはまっていますか？ Tell me in Japanese!",
+  "passed": true,
+  "cost": 0.0079,
+  "seconds": 3.4
+ },
+ {
+  "id": "wa_vs_ga_native",
+  "kind": "no_call",
+  "say": "What's the difference between は and が?",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer explains は as topic and が as subject/focus in general terms with clear examples, and it does not invent any mistakes in the learner's record.",
+  "reply": "Good question, it trips up almost everyone! Here's the short version.\n\nは marks the topic, meaning \"as for X...\". The new or important information comes after it.\n私はエンジニアです。 (As for me, I'm an engineer.)\n\nが marks the subject and puts the focus on it. The important part is who or what.\n誰がエンジニアですか？ 私がエンジニアです。 (Who's the engineer? I am.)\n\nSome everyday tips:\n1. Question words like 誰, 何 and どれ take が, never は: 何が好き？ (What do you like?)\n2. Likes, wants and abilities use が for the thing: 自転車が好きです。 (I like cycling.) 日本語ができます。 (I can speak Japanese.)\n3. は can contrast two things: コーヒーは飲みますが、お茶は飲みません。 (Coffee I drink, but tea I don't.)\n4. In a small clause inside a bigger sentence, use が: 私が作ったケーキ (the cake I made)\n\nHere's an easy way to remember it: は means \"let me tell you about X\", and が means \"it's X, that one!\"\n\nWant to try a few fill-in-the-blank ones with me? ☕",
+  "passed": true,
+  "cost": 0.0125,
+  "seconds": 5.3
+ },
+ {
+  "id": "how_to_say_native",
+  "kind": "no_call",
+  "say": "How do I say 'I'm running late' politely in Japanese?",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer gives polite Japanese phrases (遅れそうです, 申し訳ありません、少し遅れてしまいそうです) with English translations and does not invent any learner mistakes.",
+  "reply": "Good question! Here's the most common polite way to say it:\n\n遅れそうです。\n(Okureso u desu. → \"It looks like I'm going to be late.\")\n\nIf you're messaging someone, add an apology and how late you'll be:\n\nすみません、10分ほど遅れそうです。\n(Sorry, I think I'll be about 10 minutes late.)\n\nFor your boss or a client, make it more formal:\n\n申し訳ありません、少し遅れてしまいそうです。\n(I'm very sorry, it looks like I'll be a little late.)\n\nThe てしまう part adds a sense of \"sorry, it's my fault.\" With friends, a casual ごめん、ちょっと遅れる！ is enough.\n\nBy the way, if you're running late to my café, you don't have to apologize at all. Your coffee will be waiting for you ☕",
+  "passed": true,
+  "cost": 0.01,
+  "seconds": 4.7
+ },
+ {
+  "id": "culture_gift",
+  "kind": "no_call",
+  "say": "日本で友達の家に行くとき、お土産は必要ですか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer directly addresses whether omiyage is needed when visiting a friend's home in Japan, with accurate cultural guidance and useful phrases, and it presents no unfounded claims about the learner's mistakes.",
+  "reply": "It's not strictly required, but it's really common and people appreciate it! When you visit a friend's home in Japan, bringing a small gift is good manners, especially the first time.\n\nSomething simple is fine: sweets, snacks, or drinks you can share. Here are a few phrases you can use when you hand it over:\n\nつまらないものですが… (It's nothing special, but...): this one is quite formal and a little old-fashioned.\nよかったらみんなで食べてください。(Please share it with everyone if you'd like.): more natural with friends!\n\nIf it's a very close friend you see all the time, you usually don't need one. Even so, a bag of snacks from a convenience store makes people happy.\n\nBy the way, I'd like to know: if you were going to a friend's place, what would you bring? 😊",
+  "passed": true,
+  "cost": 0.0094,
+  "seconds": 5.8
+ },
+ {
+  "id": "why_keigo_hard",
+  "kind": "no_call",
+  "say": "Why is keigo so hard for learners in general?",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer gives a general, accurate explanation of why keigo is hard, does not treat the question as a request for records, and does not invent any learner mistakes.",
+  "reply": "Good question! Keigo is hard for almost everyone, and that includes lots of Japanese people. Here's why:\n\n1. It's really three systems in one. Polite (です/ます), respectful (尊敬語), which raises the other person, and humble (謙譲語), which lowers yourself. You have to choose based on who's doing the action.\n例: 先生がいらっしゃいます。(The teacher is coming. Respectful) / 私が参ります。(I'll come. Humble)\n\n2. Many verbs change completely. 言う becomes おっしゃる or 申す, and 見る becomes ご覧になる or 拝見する. You can't just add an ending, so you have to memorize them.\n\n3. It depends on relationships. Insiders vs. outsiders, age, job title... English has nothing like it. When you talk to a customer, you even use humble forms for your own boss!\n\n4. You don't hear it much in daily life. Friends speak casually, so you mostly hear keigo at shops or in business.\n\nMy tip: get です/ます solid first, then learn the most common special verbs (いらっしゃる, おっしゃる, 申す, 伺う). That covers most real situations. 一緒にがんばりましょう！ (Let's do our best together!)",
+  "passed": true,
+  "cost": 0.0126,
+  "seconds": 5.7
+ },
+ {
+  "id": "fear_of_mistakes",
+  "kind": "no_call",
+  "say": "間違えるのが怖くて、なかなか話せないんです。",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer responds with empathy and encouragement about the fear of mistakes, gives practical tips, does not list past errors, and its references to cycling, work, and 〜のほうがいいと思います are grounded in memory.",
+  "reply": "I get it, a lot of people feel that way! But honestly, mistakes are just part of learning. When you talk to me, I care much more about what you're telling me than about perfect grammar. 😊\n\nA few tips:\n1. Keep your sentences short. Short and clear beats long and perfect. 例：「週末、川で自転車に乗りました。楽しかったです。」 (I rode my bike by the river on the weekend. It was fun.)\n2. Learn a few phrases that buy you time: 「えっと…」 (um...), 「なんて言うんだろう…」 (how do I say it...). They give you a moment to think, and they sound natural too.\n3. Even if you make a mistake, keep talking. Japanese people will understand you from context.\n4. Start with topics you like, such as cycling or work. You'll find it easier to talk.\n\nAlso, you already use 「〜のほうがいいと思います」 very naturally, so you can definitely do this!\n\nSo, to practice right now: 最近、自転車でどこに行きましたか？ (Where have you been on your bike lately?) One sentence is plenty!",
+  "passed": true,
+  "cost": 0.0118,
+  "seconds": 5.5
+ },
+ {
+  "id": "tips_not_fear",
+  "kind": "no_call",
+  "say": "間違いを恐れずに話すコツはありますか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer gives general tips for speaking without fear of mistakes, and its personal touches (the を/に particle error, cycling, programming, weekend river ride) all match the learner's memory, so nothing is invented and no record list is dumped.",
+  "reply": "Good question! Lots of people feel this way, so you're not alone. Here are a few tips:\n\n1. Remember that people care about what you mean, not perfect grammar. If you say 公園を行きます instead of 公園に行きます, a Japanese listener still gets it right away.\n\n2. Keep a few \"buying time\" words ready, like えっと… (um…) or なんて言うかな… (how do I put it…). They give you a moment to think, and they make you sound natural too.\n\n3. Start with short sentences. 週末、川で自転車に乗りました。楽しかったです。(I rode my bike by the river on the weekend. It was fun.) Two short sentences work just as well as one long one.\n\n4. Talk about things you like. You know cycling and programming well, so the words come easier when you talk about them.\n\n5. Think of a correction as a little present. Every one you get means you just learned something!\n\nIn my café, the regulars who make mistakes and keep talking are the ones who get better fastest. ふふ、一緒にたくさん話しましょうね！(Hehe, let's talk lots together!)",
+  "passed": true,
+  "cost": 0.0118,
+  "seconds": 5.8
+ },
+ {
+  "id": "was_that_right",
+  "kind": "no_call",
+  "say": "「昨日は友達と公園を散歩しました」って合ってますか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer correctly confirms the sentence is correct, explains the を usage accurately, and does not invent any past mistakes; the cycling reference is grounded in memory.",
+  "reply": "Yes, that's perfectly correct! 「昨日は友達と公園を散歩しました」 means \"Yesterday I took a walk in the park with a friend.\"\nThe を is right here. With movement verbs like 散歩する, 歩く, and 走る, を marks the place you move through or along. So 公園を散歩する is about walking around the park.\nYou could also say 公園で散歩しました. That's fine too, but it sounds more like \"I walked, and it happened at the park.\" 公園を is the more natural choice for 散歩.\nSame pattern for your rides: 川沿いを自転車で走りました (I rode my bike along the river). Nice sentence!",
+  "passed": true,
+  "cost": 0.0083,
+  "seconds": 3.8
+ },
+ {
+  "id": "last_time_topic",
+  "kind": "no_call",
+  "say": "前回は何について話しましたか？",
+  "expect": {
+   "call": false
+  },
+  "called": false,
+  "calls": [],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer correctly draws on the memory topic (weekend plans, cycling by the river) without inventing mistakes or calling for mistake records, and it stays on what the learner asked.",
+  "reply": "前回は週末の予定について話しましたよ！川沿いをサイクリングするって言ってましたよね。(Last time we talked about your weekend plans. You said you'd go cycling along the river!)\n\nどうでしたか？天気はよかったですか？(How did it go? Was the weather nice?)\n\nWant to tell me about it in Japanese? Even short sentences are fine, like: 「川沿いを走りました。楽しかったです。」(I rode along the river. It was fun.)",
+  "passed": true,
+  "cost": 0.007,
+  "seconds": 3.4
+ },
+ {
+  "id": "empty_all",
+  "kind": "empty",
+  "say": "私がよくする間違いは何ですか？",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 8
+    },
+    "is_error": false,
+    "count": 0
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "It says no mistakes are recorded, avoids inventing the learner's sentences, and frames the two memory-based patterns as general notes; the example verbs are illustrative, not claimed as the learner's actual errors.",
+  "reply": "Good question! I just checked, and the live corrections from your practice sessions haven't saved any of your mistakes yet, so I can't show you real sentences you said. I don't want to make examples up.\n\nMy notes from earlier do mention two patterns, but without your exact sentences:\n1. Particles with verbs of moving and meeting, like 友達に会う (to meet a friend) or 電車に乗る (to get on a train). People often use を with these by mistake.\n2. Politeness: slipping into plain forms or using 君 when talking to a teacher.\n\nNext time we practice speaking, the corrections will be saved, and then I can go through your real sentences with you. Want to do a little speaking practice now? 自転車の話でもいいですよ！ (We could even talk about cycling!)",
+  "passed": true,
+  "cost": 0.0108,
+  "seconds": 5.6
+ },
+ {
+  "id": "empty_word_order",
+  "kind": "empty",
+  "say": "語順の間違いがあったか確認したいです。",
+  "expect": {
+   "call": true,
+   "category": "word_order"
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "category": "word_order"
+    },
+    "is_error": false,
+    "count": 0
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer reports that no word-order mistakes are on record, matching the empty tool result, and invents none; the particle and politeness mentions come from the memory.",
+  "reply": "I just checked, and there's nothing on record for word order (語順) yet. No word-order mistakes have been logged in your practice sessions so far. That's good news!\n\nThe things that keep coming up for you are particles, especially を vs に with verbs like 会う (to meet) and motion verbs, and politeness, like using plain forms or 君 with a teacher.\n\nIf you'd like, we can practice one of those next. For example: 友達に会います (I'll meet a friend). Should I give you a short exercise?",
+  "passed": true,
+  "cost": 0.009,
+  "seconds": 4.9
+ },
+ {
+  "id": "empty_native",
+  "kind": "empty",
+  "say": "Based on my past mistakes, what should I work on?",
+  "expect": {
+   "call": true
+  },
+  "called": true,
+  "calls": [
+   {
+    "input": {
+     "limit": 10
+    },
+    "is_error": false,
+    "count": 0
+   }
+  ],
+  "call_ok": true,
+  "args_ok": true,
+  "reply_ok": true,
+  "why": "The answer says no corrections are recorded, then gives two points that match the learner's memory (particles with motion and meeting verbs, and politeness toward teachers) and presents them as general recollection, not as recorded sentences, so no mistakes are invented.",
+  "reply": "Hmm, I just checked, and there aren't any recorded corrections from your practice sessions yet, so I can't show you specific sentences you said. Sorry! From what I remember in general, two things have come up more than once: 1) Particles with motion and meeting verbs, especially を vs に. For example, 友達に会います (I meet a friend) uses に, not を. 2) Politeness with teachers: stick to です/ます and avoid 君. Both are easy to fix once you've practiced them a bit. Want to chat with me for a while? Then the live corrections will record your real mistakes, and next time I can give you feedback that fits you better. ね、今週末も川沿いでサイクリングしますか？ (Are you going cycling by the river again this weekend?)",
+  "passed": true,
+  "cost": 0.0125,
+  "seconds": 6.6
+ }
+]
