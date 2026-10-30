@@ -132,7 +132,11 @@
     <section class="card">
       <h2 data-i18n="memory">What the tutor remembers about you</h2>
       <p class="muted small" data-i18n="mem_note"></p>
+      <label class="mem"><span class="k" data-i18n="mem_band">Level band</span>
+        <select id="mem-band"></select></label>
+      <div id="band-note" class="muted small"></div>
       <div id="memory"></div>
+      <details id="band-history" class="hidden"><summary data-i18n="mem_band_history">How your level has changed</summary><ol id="band-log" class="log"></ol></details>
       <div class="row"><button id="mem-save" data-i18n="mem_save">Save</button><span id="mem-status" class="muted small"></span></div>
     </section>
     <section class="card">

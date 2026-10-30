@@ -78,6 +78,7 @@ async def lifespan(app: FastAPI):
     from .tts import TTS  # imports GPT-SoVITS (changes cwd), so load after paths are resolved
     state["tts"] = TTS(settings_mod.path(CFG["paths"]["gsv_root"]), v["sovits"], v["gpt"], v["refs_list"],
                        CFG["tts"]["version"], L)
+    S.assessed_level = memory.level_text(memory.load(DATA))
     state["tts_cache"] = TTSCache(DATA / "tts_cache", voice_id(v))
     try:
         state["reply_llm"] = make_llm(CFG["llm"]["reply"])
@@ -523,7 +524,8 @@ async def session_review(req: EndRequest):
     review, cost = await run_in_threadpool(build_review, state["review_llm"], S, rec.dir)
     append_log(DATA, rec.dir, review)
     try:
-        _, mem_cost = await run_in_threadpool(memory.update, state["review_llm"], S, DATA, review)
+        mem, mem_cost = await run_in_threadpool(memory.update, state["review_llm"], S, DATA, review)
+        S.assessed_level = memory.level_text(mem)
         cost += mem_cost
         mem_updated = True
     except Exception:  # noqa: BLE001 - the review itself is done; memory catches up next time
@@ -579,7 +581,9 @@ def get_memory():
 @app.put("/api/memory")
 def put_memory(mem: dict):
     """The learner's own edits; the next review keeps them unless the session clearly shows otherwise."""
-    return memory.save(DATA, mem)
+    out = memory.apply_edit(DATA, mem)
+    S.assessed_level = memory.level_text(out)
+    return out
 
 
 # ---------------------------------------------------------------- after the session

@@ -59,7 +59,7 @@ def test_memory_is_told_misheard_and_dismissed_lines_are_not_mistakes(s, tmp_pat
 
     def json_with_cost(system, msgs, schema, max_tokens):
         seen["msg"] = msgs[0]["content"]
-        return {"level": "", "errors": [], "mastered": [], "topics": [], "about": []}, 0.0
+        return {"level": "", "errors": [], "mastered": [], "topics": [], "about": [], "band": "intermediate", "band_why": ""}, 0.0
     fix = {"review": {"corrected": "x", "corrected_reason": "why"}}
     review = {"session": {"started": "2026-10-30", "scenario": {"title": "t"}, "turns": [
         {"role": "user", "text": "聞き間違い", "feedback": {"verdict": "misheard"}, **fix},

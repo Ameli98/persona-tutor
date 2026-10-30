@@ -29,6 +29,7 @@ class Settings:
     lang: object            # tutor.lang.<target> module
     persona: dict
     scenarios: dict
+    assessed_level: str = ""   # from the learner's memory, once there is one (app.py keeps it current)
 
     @property
     def target(self) -> str:
@@ -47,8 +48,13 @@ class Settings:
         return names.whisper_code(self.native_code)
 
     @property
-    def level(self) -> str:
+    def self_rated_level(self) -> str:
         return self.cfg["language"]["level"]
+
+    @property
+    def level(self) -> str:
+        """What every prompt goes by: the self-rating in config.yaml is only the starting point."""
+        return self.assessed_level or self.self_rated_level
 
     @property
     def learner(self) -> str:
