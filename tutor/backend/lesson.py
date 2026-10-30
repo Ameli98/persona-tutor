@@ -35,6 +35,8 @@ def lesson_system(s: Settings, scenario: dict, mem: dict) -> str:
     t, n = s.target, s.native
     remembered = memory.brief(mem)
     minutes = s.cfg.get("session", {}).get("minutes", 5)
+    guide = memory.band_guide(s, mem)
+    guide = f"\nWhat suits this level: {guide}. Don't spend the lesson on what is well below it, even if the topic is simple: teach a more advanced way to talk about it.\n" if guide else ""
     return f"""You are a {t} teacher preparing a short lesson (2–3 minutes to read) right before a {minutes:g}-minute speaking practice.
 The learner's native language is {n}; their {t} level: {s.level}. {s.learner}
 {f"What you know from earlier sessions:{chr(10)}{remembered}{chr(10)}" if remembered else ""}
@@ -42,9 +44,9 @@ Today's topic: {scenario['title']}
 Setting: {scenario['setting']}
 Practice goal: {scenario['goal']}
 
-Teach what the learner needs to *say* in this conversation, at their level:
-- phrases: 5–8 phrases or chunks they will actually use when talking about this topic, in natural spoken
-  {s.lang.REGISTER}. Prefer things they don't know yet over things listed as already comfortable. note = one short
+Teach what the learner needs to *say* in this conversation, at their level:{guide}
+- phrases: 5–8 phrases or chunks they will actually use when talking about this topic, in
+  {s.speech}. Prefer things they don't know yet over things listed as already comfortable. note = one short
   line in {n} on usage or nuance ("" if nothing to add).
 - grammar: one pattern that helps here; if one of their recurring mistakes fits the topic, teach that.
   explanation = 2–3 sentences in {n}; 2 example sentences.

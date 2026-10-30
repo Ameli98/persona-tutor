@@ -6,6 +6,7 @@
   REGISTER              default speaking register for corrections and model answers
   READING_HINT          what the word-explanation 'reading' field should contain
   MISTAKE_CATEGORIES    {name: description}: kinds of mistake the feedback labels and the tutor can look up
+  BAND_GUIDE, BAND_REFS optional. {band: what a lesson teaches at that level} and {band: a short label such as a test level}
   reading(text)         pronunciation used to compare speech with a target ("" if not applicable)
   reading_display(text) reading shown under a line to help the learner ("" to hide)
   split_sentences(text) sentences small enough for one TTS call

@@ -31,7 +31,7 @@ def test_a_session_in_between_resets_the_count():
 
 
 def test_ends_of_the_scale_stay_in_range():
-    assert band(band({"band": "advanced"}, "advanced"), "advanced")["band"] == "advanced"
+    assert band(band({"band": "near_native"}, "near_native"), "near_native")["band"] == "near_native"
     assert band(band({"band": "beginner"}, "beginner"), "beginner")["band"] == "beginner"
 
 
@@ -71,3 +71,20 @@ def test_assessed_level_reaches_every_prompt():
     for text in (prompts.reply_system(s, sc), prompts.feedback_system(s), prompts.explain_system(s), prompts.ask_system(s)):
         assert "ASSESSED" in text and self_rated not in text
     assert self_rated in memory.update_system(s)
+
+
+def test_band_guide_reaches_the_lesson_prompt():
+    from tutor.backend import lesson
+    s = settings.load("config.example.yaml")
+    sc = next(iter(s.scenarios.values()))
+    assert "N1" in lesson.lesson_system(s, sc, {"band": "advanced"})
+    assert "What suits this level" not in lesson.lesson_system(s, sc, {"band": ""})
+    assert set(ja.BAND_GUIDE) == set(memory.BANDS) == set(ja.BAND_REFS)
+
+
+def test_relationship_changes_tone_only_when_set():
+    s = settings.load("config.example.yaml")
+    sc = next(iter(s.scenarios.values()))
+    assert "old rivals" not in prompts.reply_system(s, sc) and s.lang.REGISTER in prompts.feedback_system(s)
+    s.cfg["learner"]["relationship"] = "old rivals"
+    assert "old rivals" in prompts.reply_system(s, sc) and "old rivals" in prompts.feedback_system(s) and "old rivals" in s.speech

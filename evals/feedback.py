@@ -10,6 +10,7 @@ import argparse
 import json
 import time
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 
 import yaml
@@ -24,6 +25,8 @@ ALLOWED = {"fine": {"natural"}, "stiff": {"natural", "suggestion"}, "error": {"e
 
 
 def run_case(s, model: str, case: dict) -> dict:
+    if "relationship" in case:
+        s = replace(s, cfg={**s.cfg, "learner": {**s.cfg["learner"], "relationship": case["relationship"]}})
     sess = Session(s, next(iter(s.scenarios.values())), minutes=99)
     llm = make_llm({"provider": "anthropic", "model": model, "effort": "low"})
     t0 = time.time()

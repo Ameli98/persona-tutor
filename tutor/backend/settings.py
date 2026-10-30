@@ -61,6 +61,16 @@ class Settings:
         return self.cfg.get("learner", {}).get("profile", "")
 
     @property
+    def relationship(self) -> str:
+        """Who the learner and the tutor are to each other ("" = friends, the language's default register)."""
+        return self.cfg.get("learner", {}).get("relationship") or ""
+
+    @property
+    def speech(self) -> str:
+        """How corrections and model answers should sound."""
+        return f"spoken {self.target} the way people talk who are: {self.relationship}" if self.relationship else f"natural spoken {self.lang.REGISTER}"
+
+    @property
     def data(self) -> Path:
         return path(self.cfg.get("data_dir", "data"))
 

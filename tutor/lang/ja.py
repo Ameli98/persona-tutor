@@ -18,6 +18,19 @@ FEEDBACK_FOCUS = """- particle choice
 - literal translations from the learner's native language that a Japanese speaker would not say"""
 REGISTER = "polite spoken Japanese (desu/masu), natural and not overly formal"
 READING_HINT = "the reading in hiragana"
+# What a lesson teaches at each level band (memory.BANDS). JLPT guides what to teach but tests no speaking, so the
+# band itself is judged from how the learner speaks. BAND_REFS is shown next to the band's name on the page.
+BAND_REFS = {"beginner": "N5", "elementary": "N4", "intermediate": "N3", "upper_intermediate": "N2", "advanced": "N1", "near_native": "N1+"}
+BAND_GUIDE = {
+    "beginner": "about JLPT N5: greetings, です/ます sentences, basic particles and everyday words",
+    "elementary": "about JLPT N4: て-form uses, plain forms, reasons with から, comparisons, giving and receiving",
+    "intermediate": "about JLPT N3: 〜ようになる, 〜ことにする, conditionals, common casual contractions, softening what you say",
+    "upper_intermediate": "about JLPT N2: 〜わけではない, 〜にしては and similar nuance patterns, set phrases, hedged opinions, natural fillers",
+    "advanced": "about JLPT N1: formal and written patterns such as 〜ざるを得ない and 〜にもかかわらず, full keigo, idioms, nuance between near-synonyms",
+    "near_native": "beyond JLPT N1 (informally \"N0\"; no official test): business Japanese for meetings and email, literary style, "
+                   "four-character idioms and proverbs, slang and regional speech, fine nuance. Classical Japanese only for recognising "
+                   "what survives in modern use, never to speak in",
+}
 # Kinds of mistake the feedback editor labels and the tutor can look up (name → what it covers, prompt text)
 MISTAKE_CATEGORIES = {
     "particle": "wrong or missing particle (は/が, に/で, を, の ...)",

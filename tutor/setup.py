@@ -38,6 +38,7 @@ Q = {
         "target": "Language you want to practise", "native": "Your own language (for translations and explanations)",
         "level": "Your level, in your own words", "profile": "A sentence or two about you (job, studies, situation)",
         "interests": "Things you like talking about (comma-separated)", "name": "Your name in review videos",
+        "relationship": "Who are you and the tutor to each other? (e.g. a couple, old friends)",
         "persona": "Describe the tutor character you'd like in a sentence",
         "n": "How many conversation topics", "gsv": "Where is your GPT-SoVITS folder?",
         "gsv_bad": "  (no GPT_SoVITS/ inside {path} — check the path; you can fix paths.gsv_root in config.yaml later)", "key": "Anthropic API key (hidden; Enter to keep / skip)",
@@ -61,7 +62,7 @@ Q = {
     "zh-TW": {
         "target": "想練習的語言", "native": "你的母語（翻譯和說明用）", "level": "你的程度（用自己的話說）",
         "profile": "用一兩句話介紹自己（工作、學業、近況）", "interests": "喜歡聊的話題（用逗號分隔）",
-        "name": "你在復盤影片裡的名字", "persona": "用一句話描述你想要的家教角色",
+        "name": "你在復盤影片裡的名字", "relationship": "你和家教是什麼關係？（例如 a couple、old friends）", "persona": "用一句話描述你想要的家教角色",
         "n": "要幾個對話話題", "gsv": "GPT-SoVITS 資料夾在哪裡？",
         "gsv_bad": "  （{path} 裡沒有 GPT_SoVITS/，請確認路徑；之後也可以在 config.yaml 的 paths.gsv_root 修改）", "key": "Anthropic API 金鑰（輸入時不顯示；直接 Enter＝保留或略過）",
         "overwrite": "config.yaml 已存在，要更新嗎？",
@@ -273,6 +274,7 @@ def main():
         profile = ask(t, "profile", mine.get("learner", {}).get("profile") or DEFAULT_PROFILE)
         interests = ask(t, "interests", DEFAULT_INTERESTS)
         name = ask(t, "name", mine.get("learner", {}).get("name") or DEFAULT_NAME)
+        relationship = ask(t, "relationship", mine.get("learner", {}).get("relationship") or "", optional=True)
         gsv = ask(t, "gsv", find_gsv(cfg["paths"]["gsv_root"]))
         if not (settings_mod.path(gsv) / "GPT_SoVITS").is_dir():
             print(t["gsv_bad"].format(path=gsv))
@@ -308,6 +310,9 @@ def main():
         text = set_line(text, "ui_language", ui)
         text = set_line(text, "profile", yaml_str(profile), "  ")
         text = set_line(text, "name", yaml_str(name), "  ")
+        if not re.search(r"^  relationship:", text, re.M):  # a config from before this setting
+            text = re.sub(r"^(  name:.*\n)", r'\1  relationship: ""\n', text, count=1, flags=re.M)
+        text = set_line(text, "relationship", yaml_str(relationship), "  ")
         text = set_line(text, "gsv_root", yaml_str(gsv), "  ")
         if persona_rel:
             text = set_line(text, "persona", persona_rel)

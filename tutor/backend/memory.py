@@ -28,6 +28,7 @@ BANDS = {
     "intermediate": "follows conversation; answers with reasons, slowly and with some mistakes",
     "upper_intermediate": "explains and gives opinions with few mistakes that get in the way",
     "advanced": "talks freely and naturally about most topics, mistakes are rare",
+    "near_native": "close to a native speaker, including business, formal and finely nuanced speech",
 }
 BAND_HISTORY_CAP = 30
 
@@ -102,6 +103,11 @@ def level_text(mem: dict) -> str:
     """The assessed level as prompt text ("" until there is an assessment)."""
     band = f"{mem['band'].replace('_', ' ')} ({BANDS[mem['band']]})." if mem.get("band") in BANDS else ""
     return " ".join(x for x in (band, mem.get("level", "")) if x)
+
+
+def band_guide(s: Settings, mem: dict) -> str:
+    """What to teach at the learner's band, from the language module ("" when unknown)."""
+    return getattr(s.lang, "BAND_GUIDE", {}).get(mem.get("band", ""), "")
 
 
 def is_empty(mem: dict) -> bool:

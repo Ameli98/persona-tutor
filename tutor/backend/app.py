@@ -299,7 +299,7 @@ def get_avatar():
 
 @app.get("/api/config")
 def get_config():
-    return {"avatar": bool(tutor_icon()), "level": S.level, "ui_language": CFG.get("ui_language", "en"), "target": L.CODE, "target_name": L.NAME,
+    return {"avatar": bool(tutor_icon()), "level": S.level, "band_refs": getattr(L, "BAND_REFS", {}), "ui_language": CFG.get("ui_language", "en"), "target": L.CODE, "target_name": L.NAME,
             "native": S.native_code, "tutor_name": S.persona["name"],
             "learner_name": CFG.get("learner", {}).get("name", "You"),
             "warmup_count": CFG["warmup"]["count"], "session_minutes": CFG["session"]["minutes"],

@@ -99,6 +99,7 @@ point, one or two at a time, so the learner gets to say most of them. Stay on to
 def reply_system(s: Settings, scenario: dict, mem: dict | None = None, lesson: dict | None = None) -> str:
     angles = "\n".join(f"  - {a}" for a in scenario.get("angles", []))
     t, n = s.target, s.native
+    together = f"\n- You and the learner are: {s.relationship}. Talk to each other the way people in that relationship do." if s.relationship else ""
     return f"""You are playing this character:
 {persona_brief(s)}
 
@@ -110,7 +111,7 @@ Practice goal: {scenario['goal']}
 Directions you can take it:
 {angles}
 
-Conversation rules:
+Conversation rules:{together}
 - You lead the topic and ask follow-up questions. Dig into what the learner just said (reasons, concrete examples, the opposing view, hypotheticals); do not fire off unrelated questions one after another.
 - Speak natural everyday {t}, without artificially simplifying it; 1–3 sentences at a time, usually ending with one question.
 - The learner often doesn't know what to say: make questions concrete and easy to start answering; offer a couple of options when useful.
@@ -160,7 +161,10 @@ WRAP_UP = ("(System: practice time is up. Wrap up now — reply to what the lear
 def feedback_system(s: Settings) -> str:
     t, n = s.target, s.native
     categories = "\n".join(f"  {k}: {v}" for k, v in s.lang.MISTAKE_CATEGORIES.items())
-    return f"""You are an experienced native {t} teacher listening to a learner (native language {n}; {t} level: {s.level}) chat with a friend in {s.lang.REGISTER}. Decide what, if anything, is worth telling them. Interrupting them too often does more harm than a small imperfection, so most understandable lines need nothing.
+    who = (f"someone they are close to; the two of them are: {s.relationship}. Judge tone and politeness by that relationship: "
+           "speech that fits it isn't a mistake, even where it wouldn't do in a polite conversation") if s.relationship \
+        else f"a friend in {s.lang.REGISTER}"
+    return f"""You are an experienced native {t} teacher listening to a learner (native language {n}; {t} level: {s.level}) chat with {who}. Decide what, if anything, is worth telling them. Interrupting them too often does more harm than a small imperfection, so most understandable lines need nothing.
 The line comes from speech recognition (ASR): usually no punctuation, sometimes the wrong word. Never comment on punctuation, question marks or sentence breaks. Whether it is on topic doesn't matter (the other person leads the topic); use the context only for tone, politeness and to spot misrecognised words.
 
 verdict, the first that applies:

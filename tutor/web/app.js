@@ -646,7 +646,7 @@ async function sendAsk() {
 
 // ---------- memory: what the tutor remembers (data/learner.json), editable ----------
 const MEM_FIELDS = ["level", "errors", "mastered", "topics", "about"];
-const MEM_BANDS = ["beginner", "elementary", "intermediate", "upper_intermediate", "advanced"];
+const MEM_BANDS = ["beginner", "elementary", "intermediate", "upper_intermediate", "advanced", "near_native"];
 
 async function loadMemory() {
   const m = await (await fetch("/api/memory")).json();
@@ -655,7 +655,8 @@ async function loadMemory() {
     const hint = k === "level" ? "" : ` <span class="muted small">(${esc(t("mem_one_per_line"))})</span>`;
     return `<label class="mem"><span class="k">${esc(t("mem_" + k))}</span>${hint}<textarea data-k="${k}" rows="${k === "level" ? 2 : 4}">${esc(v)}</textarea></label>`;
   }).join("");
-  const name = (b) => (b ? t("band_" + b) : t("band_none"));
+  const refs = S.cfg.band_refs || {};
+  const name = (b) => (b ? t("band_" + b) + (refs[b] ? ` (${refs[b]})` : "") : t("band_none"));
   $("mem-band").innerHTML = [...(m.band ? [] : [""]), ...MEM_BANDS].map((b) => `<option value="${b}">${esc(name(b))}</option>`).join("");
   $("mem-band").value = m.band;
   $("band-note").textContent = m.band_pending ? t(m.band_pending > 0 ? "band_pending_up" : "band_pending_down") : "";

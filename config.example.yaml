@@ -12,6 +12,7 @@ learner:
   # Who you are, in a sentence or two. The tutor uses it to pick topics and follow-up questions.
   profile: "Someone who wants to get comfortable speaking in everyday conversations."
   name: You             # shown in the review video for your lines
+  relationship: ""      # who you and the tutor are to each other, e.g. "a couple", "old friends". Tone and corrections follow it; empty = polite friends
 
 persona: personas/example.yaml     # the tutor's character (name, personality, way of speaking)
 scenarios: scenarios               # folder of conversation topics (*.yaml)

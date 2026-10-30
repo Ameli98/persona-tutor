@@ -5,6 +5,7 @@
 #   tutor: what the other person just said
 #   say:   the learner's line, as the recogniser wrote it
 #   fix:   text the rewrite must contain (error, misheard)
+#   relationship: who the two are (learner.relationship); the tone is judged by it
 #   avoid: text it must not contain: words only the context suggests, which the learner never said
 
 cases:
@@ -57,3 +58,9 @@ cases:
   - {id: keep_garbled, kind: either, tutor: どうして犬を飼い始めたんですか？, say: 気をつけたらそうなってました, fix: そう, avoid: 犬}
   - {id: keep_particle, kind: error, tutor: 電車で来ましたか？, say: はい電車を来ました, fix: 電車で}
   - {id: keep_short, kind: either, tutor: どの映画が一番好きですか？, say: あれが好きだと思いまする, fix: あれ, avoid: 映画}
+
+  # ---- who the two are decides what counts as a register mistake
+  - {id: rel_couple_kimi, kind: stiff, relationship: a couple, tutor: 今日は何してた？, say: 君のことをずっと考えてたよ}
+  - {id: rel_couple_plain, kind: fine, relationship: a couple, tutor: 週末どこ行く？, say: 海に行きたいな}
+  - {id: rel_couple_real_error, kind: error, relationship: a couple, tutor: 昨日は何してた？, say: 君と映画を見るた, fix: 見た}
+  - {id: rel_friends_teacher, kind: error, tutor: 先生に質問はありますか？, say: 先生、君はこれを知ってる？, fix: 先生}

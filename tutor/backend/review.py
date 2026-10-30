@@ -78,7 +78,7 @@ For every learner line produce:
   If nothing is wrong, copy the line and leave corrected_reason empty; otherwise corrected_reason = one sentence in {n}.
   A line marked "speech recognition probably misheard": corrected = what they likely said, corrected_reason empty. A line marked "not a mistake": copy it, corrected_reason empty. Neither goes into expressions as a mistake.
   If the line is in {n} (they asked a question in their own language), corrected = how to ask it naturally in {t}, and corrected_reason says so.
-- upgraded: a model answer. Keep their meaning and stance, but say it the way a native speaker would in this situation: fuller (reasons, concrete examples, responding to what the other person said), natural spoken {s.lang.REGISTER}, 1–3 sentences, not too long.
+- upgraded: a model answer. Keep their meaning and stance, but say it the way a native speaker would in this situation: fuller (reasons, concrete examples, responding to what the other person said), {s.speech}, 1–3 sentences, not too long.
   upgrade_note: one sentence in {n} on what the model answer adds and why it is better.
 - translation: the upgraded version translated into {n}.
 - emotion: the natural tone of this line in the conversation (neutral/happy/angry/sad/shy/surprised); it decides the voice and expression in the review video.
