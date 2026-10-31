@@ -1,5 +1,7 @@
 # persona-tutor
 
+[![tests](https://github.com/Ameli98/persona-tutor/actions/workflows/tests.yml/badge.svg)](https://github.com/Ameli98/persona-tutor/actions/workflows/tests.yml)
+
 ## About
 
 A local, voice-first speaking tutor. Each session is a short lesson on the topic (key phrases, a grammar point, a
@@ -189,6 +191,20 @@ being more accurate here, and Haiku fixed the wrong thing more often.
   Sonnet's 15.5 s, for $0.03 instead of $0.02 a lesson. These are small samples.
 - *Still a risk:* a real mistake that sounds like another word gets excused as misheard. Nothing here measures how often
   that happens with real learners.
+
+## Tests
+
+CI runs everything in `tests/` on every push to `main` and every pull request. Those tests need no GPU, model weights or API
+key: they use a fake Claude client and a fake embedder, so they check this project's own logic, not how good the answers are.
+
+```bash
+pip install -r requirements-ci.txt
+python -m pytest tests
+```
+
+Not covered by CI, and run by hand: `evals/` (real API calls, or a real embedding model for `evals.retrieval`),
+`python -m tutor.tools.e2e_turn` (a real turn through the running tutor, on the GPU) and the voice pipeline. A green badge
+means the core rules still hold. It doesn't show that speech, the web page or the API endpoints work.
 
 ## Credits
 

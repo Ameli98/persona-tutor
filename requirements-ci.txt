@@ -1,0 +1,7 @@
+# What tests/ needs, far less than requirements.txt: no torch, no GPU, no model weights, no API key.
+pytest>=8.0
+pyyaml>=6.0
+numpy>=1.26,<2
+pillow>=10.0
+pyopenjtalk>=0.4      # Japanese readings; builds from source, downloads its dictionary on first use
+faster-whisper>=1.1   # only its list of languages; no model is downloaded
