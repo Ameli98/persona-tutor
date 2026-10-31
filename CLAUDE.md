@@ -28,6 +28,7 @@ for new behaviour.
 | Live feedback | `prompts.feedback_system` (verdicts: natural / suggestion / error / misheard; only error reaches `mistakes.db` and memory), `/api/feedback/dismiss`; eval: `python -m evals.feedback` (cases in `evals/feedback_cases.yaml`) — rerun it after changing that prompt |
 | Models | `llm` in `config.yaml`, one role per task: reply, ask, lesson, feedback (also word explanations and rephrasing), review (also memory). Spending by task: `Session.charge`, saved as `costs` in `session.json` |
 | Imported texts | `tutor/backend/texts.py` (`data/texts/`: decode, passages, embeddings on the CPU, search, the `search_texts` tool), `lesson.passage_rules`; eval: `python -m evals.retrieval` (free) |
+| CI | `.github/workflows/tests.yml` runs `tests/` with `requirements-ci.txt`; a test that needs a new package has to add it there |
 | What the tutor remembers | `tutor/backend/memory.py` (`data/learner.json`: fields, caps, update prompt); edited on the page's Memory view |
 | Tutor and learner relationship | `learner.relationship` in `config.yaml` (`Settings.relationship`, `Settings.speech`): tone of replies, lessons, model answers and what feedback counts as a register mistake |
 | Learner level | `Settings.level` is what prompts use: the assessed level from memory, else the self-rating in config. The band moves by `memory.apply_band` in code: one step, two sessions in a row; the model only reports where a session points |
